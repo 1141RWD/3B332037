@@ -1,14 +1,158 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>test</title>
+    <title>BlueCore | 頂級 3C 數位商城</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
+    <!-- Marquee Announcement -->
+    <div class="marquee-bar">
+        <div class="marquee-content">
+            🎉 歡慶開幕！全館滿 $499 免運費！ 🚚 限時優惠：新會員註冊現領 $100 折價券！ 🎁
+        </div>
+    </div>
 
+    <header>
+        <div class="top-bar">
+            <!-- ... existing top bar content ... -->
+            <div class="container">
+                <div class="top-links">
+                    <a href="#">賣家中心</a>
+                    <span>|</span>
+                    <a href="#">下載 App</a>
+                </div>
+                <div class="user-links">
+                    <a href="register.html">註冊</a>
+                    <span>|</span>
+                    <a href="login.html">登入</a>
+                </div>
+            </div>
+        </div>
+        <div class="main-header">
+            <div class="container">
+                <a href="#" class="logo">
+                    <i class="fa-solid fa-microchip"></i> BlueCore
+                </a>
+                <div class="search-bar">
+                    <input type="text" placeholder="搜尋商品、品牌...">
+                    <button><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+                <div class="header-icons">
+                    <div class="cart-icon" id="cart-btn">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span class="cart-count">0</span>
+                    </div>
+                    <!-- Cart Dropdown -->
+                    <div class="cart-dropdown" id="cart-dropdown">
+                        <div class="cart-header">
+                            <h3>購物車</h3>
+                        </div>
+                        <div class="cart-items" id="cart-items">
+                            <!-- Items will be injected here -->
+                            <div class="empty-cart-msg">購物車是空的</div>
+                        </div>
+                        <div class="cart-footer">
+                            <div class="total-price">總計: <span>NT$0</span></div>
+                            <button class="checkout-btn">去買單</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero-section">
+            <aside class="sidebar">
+                <div class="categories-header" id="categories-toggle">
+                    <i class="fa-solid fa-bars"></i> 商品分類 <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                </div>
+                <ul class="categories" id="categories-list">
+                    <li><a href="#"><i class="fa-solid fa-mobile-screen"></i> 手機平板</a></li>
+                    <li><a href="#"><i class="fa-solid fa-laptop"></i> 電腦筆電</a></li>
+                    <li><a href="#"><i class="fa-solid fa-shirt"></i> 流行服飾</a></li>
+                    <li><a href="#"><i class="fa-solid fa-pump-soap"></i> 美妝保養</a></li>
+                    <li><a href="#"><i class="fa-solid fa-gamepad"></i> 遊戲電玩</a></li>
+                    <li><a href="#"><i class="fa-solid fa-couch"></i> 居家生活</a></li>
+                    <li><a href="#"><i class="fa-solid fa-utensils"></i> 美食保健</a></li>
+                    <li><a href="#"><i class="fa-solid fa-car"></i> 汽機車百貨</a></li>
+                </ul>
+            </aside>
+            <div class="banner hero-banner-3c">
+                <div class="hero-content">
+                    <span class="badge">新品上市</span>
+                    <h2>iPhone 15 Pro Max</h2>
+                    <p class="description">鈦金屬設計，A17 Pro 晶片。前所未有的強大效能，現貨供應中。</p>
+                    <div class="price-tag">NT$44,900 起</div>
+                    <button class="hero-btn">立即購買 <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="hero-image-container">
+                    <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&q=80&w=600"
+                        alt="iPhone 15 Pro" class="hero-img">
+                </div>
+            </div>
+        </section>
+
+        <section class="products-section">
+            <div class="section-title">
+                <i class="fa-solid fa-fire" style="color: var(--primary-color)"></i> 熱銷推薦
+            </div>
+            <div class="product-grid">
+                <!-- Products will be injected here by script.js -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h3>關於 BlueCore</h3>
+                    <ul>
+                        <li><a href="#">關於我們</a></li>
+                        <li><a href="#">隱私權政策</a></li>
+                        <li><a href="#">服務條款</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>客戶服務</h3>
+                    <ul>
+                        <li><a href="#">幫助中心</a></li>
+                        <li><a href="#">運費說明</a></li>
+                        <li><a href="#">退換貨說明</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>關注我們</h3>
+                    <ul>
+                        <li><a href="#"><i class="fa-brands fa-facebook"></i> Facebook</a></li>
+                        <li><a href="#"><i class="fa-brands fa-instagram"></i> Instagram</a></li>
+                        <li><a href="#"><i class="fa-brands fa-line"></i> Line</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>下載 App</h3>
+                    <p>掃描 QR Code 下載</p>
+                    <div
+                        style="background: #ddd; width: 100px; height: 100px; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-top: 10px; color: #666; font-size: 0.8rem;">
+                        QR Code
+                    </div>
+                </div>
+            </div>
+            <div class="copyright">
+                &copy; 2024 BlueCore Inc. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>

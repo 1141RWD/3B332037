@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>註冊 | BlueCore</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="main-header">
+            <div class="container">
+                <a href="index.html" class="logo">
+                    <i class="fa-solid fa-microchip"></i> BlueCore
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h2>加入 BlueCore</h2>
+                <p>註冊新會員領取購物金</p>
+            </div>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="name">您的姓名</label>
+                    <input type="text" id="name" required placeholder="請輸入姓名">
+                </div>
+                <div class="form-group">
+                    <label for="email">電子信箱</label>
+                    <input type="email" id="email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">設定密碼</label>
+                    <input type="password" id="password" required placeholder="請設定密碼">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">確認密碼</label>
+                    <input type="password" id="confirm_password" required placeholder="請再次輸入密碼">
+                </div>
+                <button type="submit" class="auth-btn">立即註冊</button>
+            </form>
+            <div class="auth-footer">
+                已經有帳號了？ <a href="login.html">立即登入</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+
+</html>

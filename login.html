@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入 | BlueCore</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="main-header">
+            <div class="container">
+                <a href="index.html" class="logo">
+                    <i class="fa-solid fa-microchip"></i> BlueCore
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h2>歡迎回來</h2>
+                <p>請登入您的 BlueCore 帳號</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">電子信箱</label>
+                    <input type="email" id="email" required placeholder="name@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="password">密碼</label>
+                    <input type="password" id="password" required placeholder="請輸入密碼">
+                </div>
+                <button type="submit" class="auth-btn">登入</button>
+            </form>
+            <div class="auth-footer">
+                還沒有帳號？ <a href="register.html">立即註冊</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+</body>
+
+</html>
