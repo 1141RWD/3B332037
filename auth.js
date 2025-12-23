@@ -7,7 +7,8 @@ import {
     signOut,
     onAuthStateChanged,
     updateProfile,
-    updatePassword
+    updatePassword,
+    sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -56,8 +57,14 @@ if (registerForm) {
                 displayName: name
             });
 
-            alert('註冊成功！歡迎加入 BlueCore');
-            window.location.href = 'index.html';
+            // Send Verification Email
+            await sendEmailVerification(user);
+
+            // Force Sign Out
+            await signOut(auth);
+
+            alert('註冊成功！驗證信已發送至您的信箱，請前往點擊連結以啟用帳號。');
+            window.location.href = 'login.html';
         } catch (error) {
             let msg = '註冊失敗：' + error.message;
             if (error.code === 'auth/email-already-in-use') {
@@ -79,7 +86,15 @@ if (loginForm) {
         const password = document.getElementById('password').value;
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            if (!user.emailVerified) {
+                await signOut(auth);
+                alert('請先前往信箱點擊驗證連結啟用帳號，才能登入喔！');
+                return;
+            }
+
             alert('登入成功！');
             window.location.href = 'index.html';
         } catch (error) {
