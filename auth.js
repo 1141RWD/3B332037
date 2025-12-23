@@ -95,6 +95,25 @@ onAuthStateChanged(auth, (user) => {
                 <span>|</span>
                 <a href="#" id="logoutBtn">登出</a>
             `;
+
+            // Attach Logout Event Directly
+            setTimeout(() => {
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        console.log('Logout clicked');
+                        try {
+                            await signOut(auth);
+                            window.location.reload();
+                        } catch (error) {
+                            console.error("Logout failed:", error);
+                            alert('登出失敗：' + error.message);
+                        }
+                    });
+                }
+            }, 0);
+
         } else {
             // Logged Out (Reset to default)
             userLinks.innerHTML = `
@@ -106,20 +125,6 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// 4. Global Event Listener for Logout (Event Delegation)
-document.addEventListener('click', async (e) => {
-    if (e.target && e.target.id === 'logoutBtn') {
-        e.preventDefault();
-        try {
-            await signOut(auth);
-            // alert('已登出'); 
-            window.location.reload();
-        } catch (error) {
-            console.error("Logout failed:", error);
-            alert('登出失敗，請稍後再試');
-        }
-    }
-});
-
+// Remove global delegation to avoid conflicts
 // Expose auth for debugging if needed (optional)
 window.auth = auth;
