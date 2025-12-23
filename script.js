@@ -315,6 +315,86 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // Search Functionality
+    const searchInput = document.querySelector('.search-bar input');
+    const searchBtn = document.querySelector('.search-bar button');
+
+    function performSearch() {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) return;
+
+        const filtered = products.filter(p =>
+            p.title.toLowerCase().includes(query) ||
+            (p.category && p.category.toLowerCase().includes(query))
+        );
+
+        // Update Title
+        const sectionTitle = document.querySelector('.section-title');
+        if (sectionTitle) {
+            sectionTitle.innerHTML = `<i class="fa-solid fa-magnifying-glass" style="color: var(--primary-color)"></i> 搜尋結果：${query}`;
+            sectionTitle.style.animation = 'none';
+            sectionTitle.offsetHeight;
+            sectionTitle.style.animation = 'fadeIn 0.5s ease-out';
+        }
+
+        // Remove active class from categories
+        const categoryLinks = document.querySelectorAll('.categories a');
+        categoryLinks.forEach(l => l.classList.remove('active'));
+
+        // Render Manually (Reuse Template Logic)
+        if (!productGrid) return;
+
+        if (filtered.length === 0) {
+            productGrid.innerHTML = '<div class="no-products">找不到相關商品</div>';
+        } else {
+            productGrid.innerHTML = filtered.map(product => `
+                <div class="product-card">
+                    <img src="${product.image}" alt="${product.title}" class="product-image">
+                    <div class="product-info">
+                        <h3 class="product-title">${product.title}</h3>
+                        <div class="product-price">${formatCurrency(product.price)}</div>
+                        <div class="product-meta">
+                            <span>Sold ${product.sold}</span>
+                            <span>📍 TW</span>
+                        </div>
+                        <button class="add-to-cart-btn" onclick="addToCart(${product.id}, event)" style="
+                            margin-top: 15px;
+                            width: 100%;
+                            padding: 10px;
+                            background: var(--white);
+                            color: var(--primary-color);
+                            border: 2px solid var(--primary-color);
+                            cursor: pointer;
+                            font-size: 0.95rem;
+                            font-weight: 600;
+                            border-radius: 8px;
+                            transition: all 0.2s;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 5px;
+                        " onmouseover="this.style.background='var(--primary-color)'; this.style.color='white'" onmouseout="this.style.background='white'; this.style.color='var(--primary-color)'">
+                            <i class="fa-solid fa-cart-plus"></i> 加入購物車
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    if (searchBtn && searchInput) {
+        searchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            performSearch();
+        });
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+    }
 });
 
 cartBtn.addEventListener('click', (e) => {
