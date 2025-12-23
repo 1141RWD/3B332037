@@ -1193,11 +1193,12 @@ footer::before {
     }
 
     /* Mobile Menu Toggle */
+    /* Mobile Menu Toggle */
     .mobile-menu-btn {
         display: block !important;
         /* Force show */
         font-size: 1.5rem;
-        color: var(--secondary-color);
+        color: var(--white);
         background: none;
         border: none;
         cursor: pointer;
@@ -1210,14 +1211,35 @@ footer::before {
         min-height: auto;
         display: block;
         padding-bottom: 20px;
+        margin-bottom: 20px;
+    }
+
+    .banner {
+        position: relative;
+        /* Fix: Allow height flow */
+        height: auto;
+        min-height: 400px;
+        flex-direction: column;
+        padding-top: 20px;
     }
 
     .hero-content {
         position: relative;
         z-index: 1;
-        padding: 60px 20px 40px;
+        padding: 40px 20px 20px;
         max-width: 100%;
         text-align: center;
+    }
+
+    .hero-image-container {
+        display: flex;
+        justify-content: center;
+        padding-bottom: 20px;
+    }
+
+    .hero-img {
+        max-height: 250px;
+        width: auto;
     }
 
     /* Sidebar as Off-canvas Drawer */
