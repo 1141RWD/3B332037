@@ -9,7 +9,12 @@ const cartCountElement = document.querySelector('.cart-count');
 const cartTotalElement = document.querySelector('.total-price span');
 
 // State
-let cart = [];
+// State
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+function saveCart() {
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
 
 // Functions
 function formatCurrency(amount) {
@@ -333,6 +338,7 @@ function performAddToCart(product) {
         cart.push({ ...product, quantity: 1 });
     }
 
+    saveCart();
     updateCartUI();
 }
 
@@ -376,6 +382,7 @@ function removeFromCart(cartItemId, event) {
 
     if (index !== -1) {
         cart.splice(index, 1);
+        saveCart();
         updateCartUI();
     }
 }
