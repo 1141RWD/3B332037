@@ -177,6 +177,10 @@ header {
     gap: 40px;
 }
 
+.mobile-menu-btn {
+    display: none;
+}
+
 .logo {
     font-size: 2rem;
     font-weight: 800;

@@ -7,6 +7,7 @@
     <title>註冊 | BlueCore</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body>
@@ -42,6 +43,10 @@
                 <div class="form-group">
                     <label for="confirm_password">確認密碼</label>
                     <input type="password" id="confirm_password" required placeholder="請再次輸入密碼">
+                </div>
+                <!-- reCAPTCHA Widget -->
+                <div class="form-group" style="display: flex; justify-content: center;">
+                    <div class="g-recaptcha" data-sitekey="6Le5kzQsAAAAAElvrpAJ1h0I7IUXzQrs9YfHp1Wv"></div>
                 </div>
                 <button type="submit" class="auth-btn">立即註冊</button>
             </form>
