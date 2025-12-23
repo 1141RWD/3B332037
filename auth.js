@@ -6,7 +6,8 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    updatePassword
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -83,7 +84,70 @@ if (loginForm) {
     });
 }
 
-// 3. Auth State Listener (Runs on every page)
+// 3. Handle Profile Update (profile.html)
+const profileForm = document.getElementById('profileForm');
+if (profileForm) {
+    // Fill in current data when user loads
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            const emailInput = document.getElementById('email');
+            const nameInput = document.getElementById('displayName');
+            if (emailInput) emailInput.value = user.email;
+            if (nameInput) nameInput.value = user.displayName || '';
+        } else {
+            // Not logged in, redirect
+            window.location.href = 'login.html';
+        }
+    });
+
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const newName = document.getElementById('displayName').value;
+        const newPassword = document.getElementById('newPassword').value;
+
+        try {
+            const updates = [];
+
+            // Update Name
+            if (newName !== user.displayName) {
+                updates.push(updateProfile(user, { displayName: newName }));
+            }
+
+            // Update Password
+            if (newPassword) {
+                updates.push(updatePassword(user, newPassword));
+            }
+
+            if (updates.length > 0) {
+                await Promise.all(updates);
+                alert('資料更新成功！');
+                if (newPassword) {
+                    alert('密碼已修改，下次請使用新密碼登入。');
+                }
+                // Refresh to show new name
+                window.location.reload();
+            } else {
+                alert('沒有資料被修改。');
+            }
+        } catch (error) {
+            let msg = '更新失敗：' + error.message;
+            if (error.code === 'auth/requires-recent-login') {
+                msg = '為了安全，修改密碼需要重新登入後才能操作！請問您要現在重新登入嗎？';
+                if (confirm(msg)) {
+                    await signOut(auth);
+                    window.location.href = 'login.html';
+                }
+            } else {
+                alert(msg);
+            }
+        }
+    });
+}
+
+// 4. Auth State Listener (Runs on every page)
 onAuthStateChanged(auth, (user) => {
     const userLinks = document.querySelector('.user-links');
     if (userLinks) {
@@ -91,7 +155,7 @@ onAuthStateChanged(auth, (user) => {
             // Logged In
             const displayName = user.displayName || user.email.split('@')[0];
             userLinks.innerHTML = `
-                <span><i class="fa-solid fa-user"></i> ${displayName}</span>
+                <a href="profile.html" title="修改會員資料"><i class="fa-solid fa-user"></i> ${displayName}</a>
                 <span>|</span>
                 <a href="#" id="logoutBtn">登出</a>
             `;
@@ -105,7 +169,7 @@ onAuthStateChanged(auth, (user) => {
                         console.log('Logout clicked');
                         try {
                             await signOut(auth);
-                            window.location.reload();
+                            window.location.href = 'index.html';
                         } catch (error) {
                             console.error("Logout failed:", error);
                             alert('登出失敗：' + error.message);
@@ -125,6 +189,5 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// Remove global delegation to avoid conflicts
 // Expose auth for debugging if needed (optional)
 window.auth = auth;
