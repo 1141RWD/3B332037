@@ -421,9 +421,27 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (categoryToggle && categoryList) {
-        // Toggle Collapse
+        // Mobile Menu Logic
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        if (mobileMenuBtn && sidebar && overlay) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+
+        // Toggle Collapse (Desktop/Original Logic)
         categoryToggle.addEventListener('click', () => {
-            const sidebar = categoryToggle.closest('.sidebar');
+            // const sidebar = categoryToggle.closest('.sidebar'); // Reuse var above
             categoryList.classList.toggle('collapsed');
             categoryToggle.classList.toggle('collapsed');
             if (sidebar) {
@@ -460,8 +478,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // On mobile, might want to auto-collapse
                 if (window.innerWidth < 768) {
-                    categoryList.classList.add('collapsed');
-                    categoryToggle.classList.add('collapsed');
+                    // Close sidebar completely if in mobile drawer mode
+                    const sidebar = document.querySelector('.sidebar');
+                    const overlay = document.getElementById('sidebar-overlay');
+                    if (sidebar && sidebar.classList.contains('active')) {
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    } else {
+                        // Default desktop auto-collapse logic
+                        categoryList.classList.add('collapsed');
+                        categoryToggle.classList.add('collapsed');
+                    }
                 }
             });
         });

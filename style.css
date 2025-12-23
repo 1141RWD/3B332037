@@ -1160,7 +1160,165 @@ footer::before {
 }
 
 @media (max-width: 768px) {
+
+    /* 1. Global Layout */
+    .container {
+        padding: 0 15px;
+    }
+
+    /* 2. Header & Nav */
+    .top-bar {
+        display: none;
+    }
+
+    .main-header .container {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .logo {
+        flex: 1;
+        font-size: 1.5rem;
+    }
+
+    .header-icons {
+        margin-left: auto;
+    }
+
+    .search-bar {
+        order: 3;
+        width: 100%;
+        max-width: none;
+        margin: 0;
+    }
+
+    /* Mobile Menu Toggle */
+    .mobile-menu-btn {
+        display: block !important;
+        /* Force show */
+        font-size: 1.5rem;
+        color: var(--secondary-color);
+        background: none;
+        border: none;
+        cursor: pointer;
+        margin-right: 15px;
+    }
+
+    /* 3. Hero & Sidebar */
+    .hero-section {
+        height: auto;
+        min-height: auto;
+        display: block;
+        padding-bottom: 20px;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        padding: 60px 20px 40px;
+        max-width: 100%;
+        text-align: center;
+    }
+
+    /* Sidebar as Off-canvas Drawer */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        /* Hide off screen */
+        width: 280px;
+        height: 100vh;
+        z-index: 2000;
+        background: rgba(255, 255, 255, 0.98);
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 0;
+        backdrop-filter: none;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1999;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+
+    /* Make sidebar items visible */
+    .categories {
+        max-height: none !important;
+        /* Override collapse */
+        opacity: 1 !important;
+        visibility: visible !important;
+        overflow: auto;
+    }
+
+    .categories-header .toggle-icon {
+        display: none;
+        /* Hide toggle arrow on mobile */
+    }
+
+    /* 4. Product Grid */
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        padding: 0 5px;
+    }
+
+    .product-card {
+        margin-bottom: 0;
+    }
+
+    .product-image {
+        height: 160px;
+    }
+
+    .product-title {
+        font-size: 0.9rem;
+    }
+
+    /* 5. Modal */
     .modal-grid {
         flex-direction: column;
+    }
+
+    .modal-image-col {
+        padding: 20px;
+        min-height: 200px;
+    }
+
+    .modal-info-col {
+        padding: 20px;
+    }
+
+    .modal-content {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        border-radius: 0;
+        max-width: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* Keep 2 cols even on small screens looks better for e-commerce, or 1 if preferred */
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
     }
 }
