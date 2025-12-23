@@ -447,6 +447,43 @@ main {
     margin: 0;
 }
 
+.categories li {
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.categories li:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.categories li:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.categories li:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.categories li:nth-child(4) {
+    animation-delay: 0.25s;
+}
+
+.categories li:nth-child(5) {
+    animation-delay: 0.3s;
+}
+
+.categories li:nth-child(6) {
+    animation-delay: 0.35s;
+}
+
+.categories li:nth-child(7) {
+    animation-delay: 0.4s;
+}
+
+.categories li:nth-child(8) {
+    animation-delay: 0.45s;
+}
+
 .categories li a {
     display: flex;
     align-items: center;
@@ -457,6 +494,12 @@ main {
     font-weight: 500;
     color: var(--text-color);
     border-left: 3px solid transparent;
+}
+
+.categories li a.active {
+    background-color: var(--bg-light);
+    color: var(--primary-color);
+    border-left: 3px solid var(--primary-color);
 }
 
 .categories li a:hover {
@@ -635,46 +678,63 @@ main {
     flex-direction: column;
     position: relative;
     /* Animation FadeIn handled by JS or default delay */
-    animation: fadeIn 0.5s both;
+    animation: fadeInUpCinematic 1.4s cubic-bezier(0.1, 0.9, 0.2, 1) both;
+    will-change: transform, opacity;
+    /* Optimization for smoothness */
+}
+
+@keyframes fadeInUpCinematic {
+    0% {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+        filter: blur(5px);
+        /* Add motion blur feel */
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
 }
 
 /* Stagger animation delays for grid items (up to 10 items) */
 .product-card:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.product-card:nth-child(2) {
     animation-delay: 0.1s;
 }
 
-.product-card:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.product-card:nth-child(4) {
+.product-card:nth-child(2) {
     animation-delay: 0.2s;
 }
 
-.product-card:nth-child(5) {
-    animation-delay: 0.25s;
-}
-
-.product-card:nth-child(6) {
+.product-card:nth-child(3) {
     animation-delay: 0.3s;
 }
 
-.product-card:nth-child(7) {
-    animation-delay: 0.35s;
-}
-
-.product-card:nth-child(8) {
+.product-card:nth-child(4) {
     animation-delay: 0.4s;
 }
 
+.product-card:nth-child(5) {
+    animation-delay: 0.5s;
+}
+
+.product-card:nth-child(6) {
+    animation-delay: 0.6s;
+}
+
+.product-card:nth-child(7) {
+    animation-delay: 0.7s;
+}
+
+.product-card:nth-child(8) {
+    animation-delay: 0.8s;
+}
+
 .product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-md);
-    border-color: transparent;
+    /* transform: translateY(-8px); Remove hover lift as requested */
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(14, 165, 233, 0.4);
 }
 
 .product-image {

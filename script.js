@@ -5,56 +5,64 @@ const products = [
         title: "Apple iPhone 15 Pro Max (256GB) - Titanium Black",
         price: 44900,
         image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&q=80&w=200",
-        sold: 1200
+        sold: 1200,
+        category: "mobile"
     },
     {
         id: 2,
         title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
         price: 11900,
         image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=200",
-        sold: 850
+        sold: 850,
+        category: "mobile" // Audio often falls here or computer accessory
     },
     {
         id: 3,
         title: "Nintendo Switch OLED Model - White Joy-Con",
         price: 10480,
         image: "https://images.unsplash.com/photo-1578303512597-81de50a55000?auto=format&fit=crop&q=80&w=200",
-        sold: 5000
+        sold: 5000,
+        category: "gaming"
     },
     {
         id: 4,
         title: "MacBook Air 13-inch M2 Chip - Midnight",
         price: 35900,
         image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&q=80&w=200",
-        sold: 340
+        sold: 340,
+        category: "computer"
     },
     {
         id: 5,
         title: "Logitech MX Master 3S Performance Wireless Mouse",
         price: 3290,
         image: "https://images.unsplash.com/photo-1615663245857-acda6b025cda?auto=format&fit=crop&q=80&w=200",
-        sold: 2100
+        sold: 2100,
+        category: "computer"
     },
     {
         id: 6,
         title: "Dyson Supersonic™ Hair Dryer - Iron/Fuchsia",
         price: 14600,
         image: "https://images.unsplash.com/photo-1572522778216-778817a00f1c?auto=format&fit=crop&q=80&w=200",
-        sold: 156
+        sold: 156,
+        category: "beauty"
     },
     {
         id: 7,
         title: "Samsung 27-inch Curved Gaming Monitor 144Hz",
         price: 6990,
         image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=200",
-        sold: 890
+        sold: 890,
+        category: "computer"
     },
     {
         id: 8,
         title: "Keychron K2 Pro Custom Mechanical Keyboard",
         price: 3490,
         image: "https://images.unsplash.com/photo-1587829745563-14b96fca0524?auto=format&fit=crop&q=80&w=200",
-        sold: 670
+        sold: 670,
+        category: "computer"
     }
 ];
 
@@ -75,10 +83,20 @@ function formatCurrency(amount) {
 }
 
 // Render Products
-function renderProducts() {
+function renderProducts(filterCategory = 'all') {
     if (!productGrid) return;
 
-    productGrid.innerHTML = products.map(product => `
+    let filteredProducts = products;
+    if (filterCategory !== 'all') {
+        filteredProducts = products.filter(p => p.category === filterCategory);
+    }
+
+    if (filteredProducts.length === 0) {
+        productGrid.innerHTML = '<div class="no-products">此分類暫無商品</div>';
+        return;
+    }
+
+    productGrid.innerHTML = filteredProducts.map(product => `
         <div class="product-card">
             <img src="${product.image}" alt="${product.title}" class="product-image">
             <div class="product-info">
@@ -223,6 +241,7 @@ window.addToCart = addToCart;
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Initial Render
     renderProducts();
 
     // Category Toggle
@@ -230,11 +249,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryList = document.getElementById('categories-list');
 
     if (categoryToggle && categoryList) {
+        // Toggle Collapse
         categoryToggle.addEventListener('click', () => {
             categoryList.classList.toggle('collapsed');
             categoryToggle.classList.toggle('collapsed');
         });
+
+        // Category Filtering
+        const categoryLinks = categoryList.querySelectorAll('a');
+        categoryLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                // Active State
+                categoryLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                // Filter
+                const category = link.getAttribute('data-category');
+                renderProducts(category);
+
+                // On mobile, might want to auto-collapse
+                if (window.innerWidth < 768) {
+                    categoryList.classList.add('collapsed');
+                    categoryToggle.classList.add('collapsed');
+                }
+            });
+        });
     }
+
+    // Check Auth Status (moved here or kept in auth.js)
 });
 
 cartBtn.addEventListener('click', (e) => {
