@@ -127,6 +127,8 @@ function openProductModal(productId) {
     `;
 
     modal.style.display = 'block';
+    // Disable body scroll
+    document.body.style.overflow = 'hidden';
 
     // Auto-select first options if available
     const firstBtns = modalBody.querySelectorAll('.modal-option-group');
@@ -226,6 +228,7 @@ function addToCartFromModal() {
 
     // Close Modal
     document.getElementById('product-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
 
     // Trigger Fly Animation from Modal Image (optional, requires finding the element)
     // Just pulse cart for now
@@ -237,12 +240,14 @@ function addToCartFromModal() {
 // Close Modal Logic
 document.querySelector('.close-modal').addEventListener('click', () => {
     document.getElementById('product-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
 });
 
 window.onclick = function (event) {
     const modal = document.getElementById('product-modal');
     if (event.target == modal) {
         modal.style.display = "none";
+        document.body.style.overflow = 'auto';
     }
 }
 
