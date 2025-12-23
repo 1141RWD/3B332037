@@ -14,7 +14,7 @@ const products = [
         price: 11900,
         image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=200",
         sold: 850,
-        category: "mobile" // Audio often falls here or computer accessory
+        category: "mobile"
     },
     {
         id: 3,
@@ -207,7 +207,6 @@ function performAddToCart(product) {
     }
 
     updateCartUI();
-    // Removed alert for smoother experience
 }
 
 function updateCartUI() {
@@ -248,6 +247,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryToggle = document.getElementById('categories-toggle');
     const categoryList = document.getElementById('categories-list');
 
+    // Category Names Mapping
+    const categoryNames = {
+        'all': '熱銷推薦',
+        'mobile': '手機平板',
+        'computer': '電腦筆電',
+        'fashion': '流行服飾',
+        'beauty': '美妝保養',
+        'gaming': '遊戲電玩',
+        'lifestyle': '居家生活',
+        'food': '美食保健',
+        'auto': '汽機車百貨'
+    };
+
+    // Category Icons Mapping
+    const categoryIcons = {
+        'all': 'fa-fire',
+        'mobile': 'fa-mobile-screen',
+        'computer': 'fa-laptop',
+        'fashion': 'fa-shirt',
+        'beauty': 'fa-pump-soap',
+        'gaming': 'fa-gamepad',
+        'lifestyle': 'fa-couch',
+        'food': 'fa-utensils',
+        'auto': 'fa-car'
+    };
+
     if (categoryToggle && categoryList) {
         // Toggle Collapse
         categoryToggle.addEventListener('click', () => {
@@ -269,6 +294,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const category = link.getAttribute('data-category');
                 renderProducts(category);
 
+                // Update Section Title
+                const sectionTitle = document.querySelector('.section-title');
+                if (sectionTitle) {
+                    const iconClass = categoryIcons[category] || 'fa-tag';
+                    const name = categoryNames[category] || '商品列表';
+                    sectionTitle.innerHTML = `<i class="fa-solid ${iconClass}" style="color: var(--primary-color)"></i> ${name}`;
+
+                    // Add subtle animation to title
+                    sectionTitle.style.animation = 'none';
+                    sectionTitle.offsetHeight; /* trigger reflow */
+                    sectionTitle.style.animation = 'fadeIn 0.5s ease-out';
+                }
+
                 // On mobile, might want to auto-collapse
                 if (window.innerWidth < 768) {
                     categoryList.classList.add('collapsed');
@@ -277,8 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-
-    // Check Auth Status (moved here or kept in auth.js)
 });
 
 cartBtn.addEventListener('click', (e) => {
