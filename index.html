@@ -67,11 +67,11 @@
 
     <main class="container">
         <section class="hero-section">
-            <aside class="sidebar">
-                <div class="categories-header" id="categories-toggle">
+            <aside class="sidebar collapsed">
+                <div class="categories-header collapsed" id="categories-toggle">
                     <i class="fa-solid fa-bars"></i> 商品分類 <i class="fa-solid fa-chevron-down toggle-icon"></i>
                 </div>
-                <ul class="categories" id="categories-list">
+                <ul class="categories collapsed" id="categories-list">
                     <li><a href="#" data-category="all" class="active"><i class="fa-solid fa-border-all"></i> 所有商品</a>
                     </li>
                     <li><a href="#" data-category="mobile"><i class="fa-solid fa-mobile-screen"></i> 手機平板</a></li>
@@ -87,14 +87,13 @@
             <div class="banner hero-banner-3c">
                 <div class="hero-content">
                     <span class="badge">新品上市</span>
-                    <h2>iPhone 15 Pro Max</h2>
-                    <p class="description">鈦金屬設計，A17 Pro 晶片。前所未有的強大效能，現貨供應中。</p>
+                    <h2>iPhone 17 Pro Max</h2>
+                    <p class="description">鋁金屬設計，A19 Pro 晶片。前所未有的強大效能，現貨供應中。</p>
                     <div class="price-tag">NT$44,900 起</div>
                     <button class="hero-btn">立即購買 <i class="fa-solid fa-arrow-right"></i></button>
                 </div>
                 <div class="hero-image-container">
-                    <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&q=80&w=600"
-                        alt="iPhone 15 Pro" class="hero-img">
+                    <img src="images/iphone17.png" alt="iPhone 17 Pro" class="hero-img">
                 </div>
             </div>
         </section>
@@ -139,10 +138,20 @@
 
             </div>
             <div class="copyright">
-                &copy; 2024 BlueCore Inc. All Rights Reserved. <span class="version">v1.1.0</span>
+                &copy; 2025 BlueCore Inc. All Rights Reserved. <span class="version">v2.0.0</span>
             </div>
         </div>
     </footer>
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="auth.js"></script>
     <script src="script.js"></script>

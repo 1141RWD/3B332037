@@ -2,67 +2,133 @@
 const products = [
     {
         id: 1,
-        title: "Apple iPhone 15 Pro Max (256GB) - Titanium Black",
+        title: "Apple 蘋果iPhone 17 Pro Max (256G)",
         price: 44900,
-        image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&q=80&w=200",
-        sold: 1200,
-        category: "mobile"
+        image: "images/iphone17.png",
+        sold: 9999 + "+",
+        category: "mobile",
+        options: {
+            colors: ["銀色", "宇宙橙色", "藏藍色"],
+            specs: ["256GB", "512GB", "1TB"],
+            priceModifiers: {
+                "512GB": 6000,
+                "1TB": 18000
+            }
+        }
     },
     {
         id: 2,
-        title: "Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
+        title: "Sony WH-1000XM6 耳罩式降噪耳機",
         price: 11900,
-        image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&q=80&w=200",
+        image: "images/headphones.jpg",
         sold: 850,
-        category: "mobile"
+        category: "mobile",
+        options: {
+            colors: ["深夜藍", "鉑金銀", "黑色"]
+        }
     },
     {
         id: 3,
-        title: "Nintendo Switch OLED Model - White Joy-Con",
+        title: "Nintendo Switch 2",
         price: 10480,
-        image: "https://images.unsplash.com/photo-1578303512597-81de50a55000?auto=format&fit=crop&q=80&w=200",
+        image: "images/switch.jpg",
         sold: 5000,
-        category: "gaming"
+        category: "gaming",
+        options: {
+            colors: ["白色", "電光紅/藍", "瑪利歐紅色版"]
+        }
     },
     {
         id: 4,
-        title: "MacBook Air 13-inch M2 Chip - Midnight",
-        price: 35900,
-        image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&q=80&w=200",
+        title: "MacBook Pro 16 Apple M5 (Pro/Max)",
+        price: 84900,
+        image: "images/macbook.jpg",
         sold: 340,
-        category: "computer"
+        category: "computer",
+        options: {
+            colors: ["太空黑", "銀色"],
+            specs: ["M5 Pro 18GB/512GB", "M5 Pro 36GB/512GB", "M5 Max 36GB/1TB", "M5 Max 48GB/1TB"],
+            priceModifiers: {
+                "M5 Pro 36GB/512GB": 15000,
+                "M5 Max 36GB/1TB": 30000,
+                "M5 Max 48GB/1TB": 45000
+            }
+        }
     },
     {
         id: 5,
-        title: "Logitech MX Master 3S Performance Wireless Mouse",
+        title: "Logitech PRO X SUPERLIGHT 2",
         price: 3290,
-        image: "https://images.unsplash.com/photo-1615663245857-acda6b025cda?auto=format&fit=crop&q=80&w=200",
+        image: "images/mouse.jpg",
         sold: 2100,
-        category: "computer"
+        category: "computer",
+        options: {
+            colors: ["黑色", "白色", "桃紅色"]
+        }
     },
     {
         id: 6,
         title: "Dyson Supersonic™ Hair Dryer - Iron/Fuchsia",
         price: 14600,
-        image: "https://images.unsplash.com/photo-1572522778216-778817a00f1c?auto=format&fit=crop&q=80&w=200",
+        image: "images/dyson.jpg",
         sold: 156,
-        category: "beauty"
+        category: "beauty",
+        options: {
+            colors: ["桃紅色", "黑鎳色", "普魯士藍"]
+        }
     },
     {
         id: 7,
-        title: "Samsung 27-inch Curved Gaming Monitor 144Hz",
+        title: "SAMSUNG 三星 27吋 C27G55TQWC 2K+144Hz 超曲1000R電競",
         price: 6990,
-        image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=200",
+        image: "images/monitor.jpg",
         sold: 890,
-        category: "computer"
+        category: "computer",
+        options: {}
     },
     {
         id: 8,
         title: "Keychron K2 Pro Custom Mechanical Keyboard",
         price: 3490,
-        image: "https://images.unsplash.com/photo-1587829745563-14b96fca0524?auto=format&fit=crop&q=80&w=200",
+        image: "images/keyboard.jpg",
         sold: 670,
-        category: "computer"
+        category: "computer",
+        options: {
+            specs: ["紅軸", "青軸", "茶軸"],
+            colors: ["RGB 背光", "白光"]
+        }
+    },
+    {
+        id: 9,
+        title: "Sony PlayStation 5 Pro Console",
+        price: 24980,
+        image: "images/ps5.jpg",
+        sold: 230,
+        category: "gaming",
+        options: {
+            specs: ["數位版", "光碟版"]
+        }
+    },
+    {
+        id: 10,
+        title: "Premium Car Wash & Wax Kit (10-Piece)",
+        price: 1599,
+        image: "images/car-wash.jpg",
+        sold: 450,
+        category: "auto",
+        options: {}
+    },
+    {
+        id: 11,
+        title: "HIRASHIMA - CARAMELLA 沙發",
+        price: 8900,
+        image: "images/sofa.jpg",
+        sold: 120,
+        category: "lifestyle",
+        options: {
+            colors: ["經典灰", "米杏色", "深藍色"],
+            specs: ["雙人座", "三人座"]
+        }
     }
 ];
 
@@ -98,15 +164,15 @@ function renderProducts(filterCategory = 'all') {
 
     productGrid.innerHTML = filteredProducts.map(product => `
         <div class="product-card">
-            <img src="${product.image}" alt="${product.title}" class="product-image">
+            <img src="${product.image}" alt="${product.title}" class="product-image" onclick="openProductModal(${product.id})" style="cursor: pointer">
             <div class="product-info">
-                <h3 class="product-title">${product.title}</h3>
+                <h3 class="product-title" onclick="openProductModal(${product.id})" style="cursor: pointer">${product.title}</h3>
                 <div class="product-price">${formatCurrency(product.price)}</div>
                 <div class="product-meta">
                     <span>Sold ${product.sold}</span>
                     <span>📍 TW</span>
                 </div>
-                <button class="add-to-cart-btn" onclick="addToCart(${product.id}, event)" style="
+                <button class="add-to-cart-btn" onclick="openProductModal(${product.id})" style="
                     margin-top: 15px;
                     width: 100%;
                     padding: 10px;
@@ -129,6 +195,194 @@ function renderProducts(filterCategory = 'all') {
         </div>
     `).join('');
 }
+
+// Modal State
+let currentModalProduct = null;
+let selectedOptions = {};
+
+// Modal Functions
+function openProductModal(productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    currentModalProduct = product;
+    selectedOptions = {}; // Reset selections
+
+    const modal = document.getElementById('product-modal');
+    const modalBody = document.getElementById('modal-body');
+
+    // Generate Options HTML
+    let optionsHtml = '';
+    if (product.options) {
+        if (product.options.colors && product.options.colors.length > 0) {
+            optionsHtml += `
+            <div class="modal-option-group">
+                <label class="modal-option-label">顏色 / Color</label>
+                <div class="modal-options">
+                    ${product.options.colors.map(color =>
+                `<button class="option-btn" onclick="selectOption('color', '${color}', this)">${color}</button>`
+            ).join('')}
+                </div>
+            </div>`;
+        }
+        if (product.options.specs && product.options.specs.length > 0) {
+            optionsHtml += `
+            <div class="modal-option-group">
+                <label class="modal-option-label">規格 / Spec</label>
+                <div class="modal-options">
+                    ${product.options.specs.map(spec =>
+                `<button class="option-btn" onclick="selectOption('spec', '${spec}', this)">${spec}</button>`
+            ).join('')}
+                </div>
+            </div>`;
+        }
+    }
+
+    modalBody.innerHTML = `
+        <div class="modal-grid">
+            <div class="modal-image-col">
+                <img src="${product.image}" alt="${product.title}">
+            </div>
+            <div class="modal-info-col">
+                <h2 class="modal-title">${product.title}</h2>
+                <div class="modal-price">${formatCurrency(product.price)}</div>
+                
+                ${optionsHtml}
+
+                <div class="modal-actions">
+                    <button class="add-to-cart-modal-btn" onclick="addToCartFromModal()">
+                        <i class="fa-solid fa-cart-plus"></i> 加入購物車
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'block';
+
+    // Auto-select first options if available
+    const firstBtns = modalBody.querySelectorAll('.modal-option-group');
+    firstBtns.forEach(group => {
+        const btn = group.querySelector('.option-btn');
+        if (btn) btn.click();
+    });
+}
+
+function selectOption(type, value, btnElement) {
+    selectedOptions[type] = value;
+
+    // UI Update
+    const siblings = btnElement.parentElement.children;
+    for (let btn of siblings) {
+        btn.classList.remove('selected');
+    }
+    btnElement.classList.add('selected');
+
+    // Price Update
+    if (typeof updateModalPrice === 'function') {
+        updateModalPrice();
+    }
+}
+
+function updateModalPrice() {
+    if (!currentModalProduct) return;
+
+    let finalPrice = currentModalProduct.price;
+    const modifiers = currentModalProduct.options ? currentModalProduct.options.priceModifiers : null;
+
+    if (modifiers) {
+        Object.values(selectedOptions).forEach(selectedValue => {
+            if (modifiers[selectedValue]) {
+                finalPrice += modifiers[selectedValue];
+            }
+        });
+    }
+
+    const priceEl = document.querySelector('.modal-price');
+    if (priceEl) {
+        priceEl.textContent = formatCurrency(finalPrice);
+
+        // Visual feedback
+        priceEl.style.transition = 'transform 0.2s, color 0.2s';
+        priceEl.style.transform = 'scale(1.1)';
+        priceEl.style.color = 'var(--primary-dark)';
+        setTimeout(() => {
+            priceEl.style.transform = 'scale(1)';
+            priceEl.style.color = 'var(--primary-color)';
+        }, 200);
+    }
+}
+
+function addToCartFromModal() {
+    if (!currentModalProduct) return;
+
+    // Calculate Dynamic Price
+    let finalPrice = currentModalProduct.price;
+    const modifiers = currentModalProduct.options ? currentModalProduct.options.priceModifiers : null;
+
+    if (modifiers) {
+        Object.values(selectedOptions).forEach(selectedValue => {
+            if (modifiers[selectedValue]) {
+                finalPrice += modifiers[selectedValue];
+            }
+        });
+    }
+
+    // Validate if options are selected (primitive check)
+    // For now, we assume auto-select works or user selects. 
+    // You could force check here.
+
+    // Create a variant title
+    let variantTitle = currentModalProduct.title;
+    const variants = [];
+    if (selectedOptions.color) variants.push(selectedOptions.color);
+    if (selectedOptions.spec) variants.push(selectedOptions.spec);
+
+    if (variants.length > 0) {
+        variantTitle += ` (${variants.join(' - ')})`;
+    }
+
+    // Unique ID for cart item based on variants
+    const cartItemId = `${currentModalProduct.id}-${variants.join('-')}`;
+
+    const cartItem = {
+        ...currentModalProduct,
+        id: cartItemId, // Override ID for cart distinctness
+        originalId: currentModalProduct.id,
+        title: variantTitle,
+        price: finalPrice, // Use dynamic price
+        quantity: 1
+    };
+
+    performAddToCart(cartItem);
+
+    // Close Modal
+    document.getElementById('product-modal').style.display = 'none';
+
+    // Trigger Fly Animation from Modal Image (optional, requires finding the element)
+    // Just pulse cart for now
+    const cartIcon = document.querySelector('.cart-icon');
+    cartIcon.style.transform = 'scale(1.2)';
+    setTimeout(() => cartIcon.style.transform = 'scale(1)', 200);
+}
+
+// Close Modal Logic
+document.querySelector('.close-modal').addEventListener('click', () => {
+    document.getElementById('product-modal').style.display = 'none';
+});
+
+window.onclick = function (event) {
+    const modal = document.getElementById('product-modal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+// Expose functions
+window.openProductModal = openProductModal;
+window.selectOption = selectOption;
+window.addToCartFromModal = addToCartFromModal;
+
 
 // Cart Logic
 function addToCart(productId, event) {
@@ -219,13 +473,16 @@ function updateCartUI() {
         cartItemsContainer.innerHTML = '<div class="empty-cart-msg">購物車是空的</div>';
         cartTotalElement.textContent = formatCurrency(0);
     } else {
-        cartItemsContainer.innerHTML = cart.map(item => `
+        cartItemsContainer.innerHTML = cart.map((item, index) => `
             <div class="cart-item">
                 <img src="${item.image}" alt="${item.title}">
                 <div class="cart-item-info">
                     <div class="cart-item-title">${item.title}</div>
                     <div class="cart-item-price">${formatCurrency(item.price)} x ${item.quantity}</div>
                 </div>
+                <button class="remove-cart-item-btn" onclick="removeFromCart('${item.id}', event)">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </div>
         `).join('');
 
@@ -234,6 +491,23 @@ function updateCartUI() {
         cartTotalElement.textContent = formatCurrency(totalAmount);
     }
 }
+
+function removeFromCart(cartItemId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+
+    // Find index of item
+    // cartItemId could be number (for simple products) or string (for variants)
+    const index = cart.findIndex(item => item.id == cartItemId);
+
+    if (index !== -1) {
+        cart.splice(index, 1);
+        updateCartUI();
+    }
+}
+
+window.removeFromCart = removeFromCart;
 
 // Expose addToCart to global scope for onclick handler
 window.addToCart = addToCart;
@@ -276,8 +550,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (categoryToggle && categoryList) {
         // Toggle Collapse
         categoryToggle.addEventListener('click', () => {
+            const sidebar = categoryToggle.closest('.sidebar');
             categoryList.classList.toggle('collapsed');
             categoryToggle.classList.toggle('collapsed');
+            if (sidebar) {
+                sidebar.classList.toggle('collapsed');
+            }
         });
 
         // Category Filtering

@@ -354,6 +354,24 @@ header {
     border-top: 1px solid var(--border-color);
 }
 
+.remove-cart-item-btn {
+    background: none;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 5px;
+    font-size: 0.9rem;
+    transition: transform 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-cart-item-btn:hover {
+    color: #b91c1c;
+    transform: scale(1.1);
+}
+
 .total-price {
     display: flex;
     justify-content: space-between;
@@ -441,6 +459,17 @@ main {
 
 .categories-header:hover {
     background: rgba(0, 0, 0, 0.02);
+}
+
+.sidebar.collapsed {
+    height: auto;
+    /* Or specific height if needed */
+}
+
+/* When sidebar is collapsed, reduce padding of hero-content */
+.sidebar.collapsed+.banner .hero-content {
+    padding-left: 50px;
+    /* Reduced from 300px */
 }
 
 .categories-header .toggle-icon {
@@ -582,6 +611,8 @@ main {
     /* Offset for sidebar */
     padding-right: 50px;
     animation: slideUpFade 1s ease-out;
+    transition: padding-left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Add smooth transition */
 }
 
 .hero-content .badge {
@@ -972,4 +1003,164 @@ footer::before {
 
 .auth-footer a:hover {
     text-decoration: underline;
+}
+
+/* Product Detail Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background-color: var(--white);
+    margin: 5% auto;
+    padding: 0;
+    width: 90%;
+    max-width: 800px;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+.close-modal {
+    color: #94a3b8;
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: var(--secondary-color);
+}
+
+.modal-grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.modal-image-col {
+    flex: 1;
+    min-width: 300px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+.modal-image-col img {
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.1));
+}
+
+.modal-info-col {
+    flex: 1.2;
+    min-width: 300px;
+    padding: 40px;
+}
+
+.modal-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+    line-height: 1.3;
+}
+
+.modal-price {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 25px;
+}
+
+.modal-option-group {
+    margin-bottom: 25px;
+}
+
+.modal-option-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.modal-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.option-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.option-btn:hover {
+    border-color: var(--primary-color);
+}
+
+.option-btn.selected {
+    border-color: var(--primary-color);
+    background: rgba(14, 165, 233, 0.1);
+    color: var(--primary-color);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.modal-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.add-to-cart-modal-btn {
+    flex: 1;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.add-to-cart-modal-btn:hover {
+    background: var(--primary-dark);
+}
+
+@media (max-width: 768px) {
+    .modal-grid {
+        flex-direction: column;
+    }
 }
