@@ -181,6 +181,10 @@ header {
     display: none;
 }
 
+.login-icon {
+    display: none;
+}
+
 .logo {
     font-size: 2rem;
     font-weight: 800;
@@ -1207,6 +1211,10 @@ footer::before {
         border: none;
         cursor: pointer;
         margin-right: 15px;
+    }
+
+    .login-icon {
+        display: block;
     }
 
     /* 3. Hero & Sidebar */

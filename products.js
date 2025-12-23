@@ -2,7 +2,7 @@
 const products = [
     {
         id: 1,
-        title: "Apple 蘋果iPhone 17 Pro Max (256G)",
+        title: "Apple 蘋果iPhone 17 Pro Max ",
         price: 44900,
         image: "images/iphone17.png",
         sold: 9999 + "+",

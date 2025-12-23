@@ -163,7 +163,7 @@ onAuthStateChanged(auth, (user) => {
             // Logged In
             const displayName = user.displayName || user.email.split('@')[0];
             userLinks.innerHTML = `
-                <a href="profile.html" title="修改會員資料"><i class="fa-solid fa-user"></i> ${displayName}</a>
+                <a href="profile.html" title="修改會員資料"><i class="fa-solid fa-user"></i> 歡迎回來! ${displayName}</a>
                 <span>|</span>
                 <a href="#" id="logoutBtn">登出</a>
             `;
