@@ -841,6 +841,13 @@ footer::before {
     padding-top: 20px;
 }
 
+.version {
+    margin-left: 10px;
+    font-size: 0.75rem;
+    color: var(--text-light);
+    opacity: 0.7;
+}
+
 /* Authentication Pages */
 .auth-container {
     min-height: 80vh;
