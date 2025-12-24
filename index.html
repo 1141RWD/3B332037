@@ -11,7 +11,156 @@
 </head>
 
 <body>
-    <!-- ... body content ... -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <!-- Marquee Announcement -->
+    <div class="marquee-bar">
+        <div class="marquee-content">
+            🎉 歡慶開幕！全館滿 $499 免運費！ 🚚 限時優惠：新會員註冊現領 $100 折價券！ 🎁
+        </div>
+    </div>
+
+    <header>
+        <div class="top-bar">
+            <!-- ... existing top bar content ... -->
+            <div class="container">
+                <div class="top-links">
+                    <!-- Removed Seller Center and App Download -->
+                </div>
+                <div class="user-links">
+                    <a href="register.html">註冊</a>
+                    <span>|</span>
+                    <a href="login.html">登入</a>
+                </div>
+            </div>
+        </div>
+        <div class="main-header">
+            <div class="container">
+                <button class="mobile-menu-btn" id="mobile-menu-btn">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <a href="#" class="logo">
+                    <i class="fa-solid fa-microchip"></i> BlueCore
+                </a>
+                <div class="search-bar">
+                    <input type="text" placeholder="搜尋商品、品牌...">
+                    <button><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+                <div class="header-icons">
+                    <a href="login.html" class="login-icon" style="color: white; font-size: 1.2rem;">
+                        <i class="fa-solid fa-user"></i>
+                    </a>
+                    <div class="cart-icon" id="cart-btn">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span class="cart-count">0</span>
+                    </div>
+                    <!-- Cart Dropdown -->
+                    <div class="cart-dropdown" id="cart-dropdown">
+                        <div class="cart-header">
+                            <h3>購物車</h3>
+                        </div>
+                        <div class="cart-items" id="cart-items">
+                            <!-- Items will be injected here -->
+                            <div class="empty-cart-msg">購物車是空的</div>
+                        </div>
+                        <div class="cart-footer">
+                            <div class="total-price">總計: <span>NT$0</span></div>
+                            <button class="checkout-btn" onclick="window.location.href='checkout.html'">去買單</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero-section">
+            <aside class="sidebar collapsed">
+                <div class="categories-header collapsed" id="categories-toggle">
+                    <i class="fa-solid fa-bars"></i> 商品分類 <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                </div>
+                <ul class="categories collapsed" id="categories-list">
+                    <li><a href="#" data-category="all" class="active"><i class="fa-solid fa-border-all"></i> 所有商品</a>
+                    </li>
+                    <li><a href="#" data-category="mobile"><i class="fa-solid fa-mobile-screen"></i> 手機平板</a></li>
+                    <li><a href="#" data-category="computer"><i class="fa-solid fa-laptop"></i> 電腦筆電</a></li>
+                    <li><a href="#" data-category="fashion"><i class="fa-solid fa-shirt"></i> 流行服飾</a></li>
+                    <li><a href="#" data-category="beauty"><i class="fa-solid fa-pump-soap"></i> 美妝保養</a></li>
+                    <li><a href="#" data-category="gaming"><i class="fa-solid fa-gamepad"></i> 遊戲電玩</a></li>
+                    <li><a href="#" data-category="lifestyle"><i class="fa-solid fa-couch"></i> 居家生活</a></li>
+                    <li><a href="#" data-category="food"><i class="fa-solid fa-utensils"></i> 美食保健</a></li>
+                    <li><a href="#" data-category="auto"><i class="fa-solid fa-car"></i> 汽機車百貨</a></li>
+                </ul>
+            </aside>
+            <div class="banner hero-banner-3c">
+                <div class="hero-content">
+                    <span class="badge">新品上市</span>
+                    <h2>iPhone 17 Pro Max</h2>
+                    <p class="description">鋁金屬設計，A19 Pro 晶片。前所未有的強大效能，現貨供應中。</p>
+                    <div class="price-tag">NT$44,900 起</div>
+                    <button class="hero-btn">立即購買 <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <div class="hero-image-container">
+                    <img src="images/iphone17.png" alt="iPhone 17 Pro" class="hero-img">
+                </div>
+            </div>
+        </section>
+
+        <section class="products-section">
+            <div class="section-title">
+                <i class="fa-solid fa-fire" style="color: var(--primary-color)"></i> 熱銷推薦
+            </div>
+            <div class="product-grid">
+                <!-- Products will be injected here by script.js -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h3>關於 BlueCore</h3>
+                    <ul>
+                        <li><a href="#">關於我們</a></li>
+                        <li><a href="#">隱私權政策</a></li>
+                        <li><a href="#">服務條款</a></li>
+                        <li><a href="seller.html">賣家中心</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>客戶服務</h3>
+                    <ul>
+                        <li><a href="#">幫助中心</a></li>
+                        <li><a href="#">運費說明</a></li>
+                        <li><a href="#">退換貨說明</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>關注我們</h3>
+                    <ul>
+                        <li><a href="#"><i class="fa-brands fa-facebook"></i> Facebook</a></li>
+                        <li><a href="#"><i class="fa-brands fa-instagram"></i> Instagram</a></li>
+                        <li><a href="#"><i class="fa-brands fa-line"></i> Line</a></li>
+                    </ul>
+                </div>
+
+            </div>
+            <div class="copyright">
+                &copy; 2025 BlueCore Inc. All Rights Reserved. <span class="version">Build d3fabd8</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Product Detail Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="js/auth.js?v=d3fabd8"></script>
     <script type="module" src="js/script.js?v=d3fabd8"></script>
     <script type="module" src="js/ui.js?v=d3fabd8"></script>
