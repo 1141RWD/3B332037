@@ -243,8 +243,11 @@ export async function getUserRole(uid, email = null) {
 export async function getAllUserRoles() {
     const users = [];
     try {
+        console.log("getAllUserRoles: Start");
         const q = query(collection(db, "user_roles"));
+        console.log("getAllUserRoles: Executing query...");
         const querySnapshot = await getDocs(q);
+        console.log("getAllUserRoles: Got snapshot, size=" + querySnapshot.size);
         querySnapshot.forEach((doc) => {
             users.push(doc.data());
         });
