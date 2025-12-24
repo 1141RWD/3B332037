@@ -1,5 +1,5 @@
 // Checkout Logic
-import { createOrder, hasUserUsedCoupon } from './firebase_db.js';
+import { createOrder, hasUserUsedCoupon, validCoupons } from './firebase_db.js';
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const cityDistricts = {
@@ -27,12 +27,7 @@ const cityDistricts = {
     "Lienchiang": { name: "連江縣", districts: ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"] }
 };
 
-// Valid Coupons (Mock Database)
-const validCoupons = {
-    'WELCOME100': { type: 'fixed', value: 100, minPurchase: 500, code: 'WELCOME100' },
-    'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000, code: 'VIP2024' }, // 10% off
-    'FREESHIP': { type: 'shipping', value: 0, minPurchase: 0, code: 'FREESHIP' }
-};
+// Valid Coupons now imported from firebase_db.js
 
 let appliedCoupon = null;
 

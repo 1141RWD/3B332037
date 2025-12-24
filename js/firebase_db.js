@@ -27,7 +27,6 @@ const firebaseConfig = {
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
 
-// 1. Create a New Order
 // 1. Create a New Order (and Update Sold Counts)
 export async function createOrder(userId, orderData) {
     // Import batch and atomic utils
@@ -47,22 +46,13 @@ export async function createOrder(userId, orderData) {
         // B. Increment Sold Count for each item
         const items = orderData.items || [];
         items.forEach(item => {
-            // Need to handle both string ID (legacy/variant) and number ID
-            // Using item.originalId if available (from variants logic) or item.id
-            // But wait, the main product doc ID is needed.
-            // If item.id is "1-Red-L", the doc ID is likely "1".
-            // Let's assume item.id is the doc ID if simple, or item.originalId if variant.
-
             let productDocId = String(item.originalId || item.id);
-            // If the ID contains hyphen (variant), try to split to get base ID if originalId is missing
             if ((!item.originalId) && productDocId.includes('-')) {
                 productDocId = productDocId.split('-')[0];
             }
 
-            // Reference to the product document
             const productRef = doc(db, "products", productDocId);
 
-            // Atomic Increment
             batch.update(productRef, {
                 sold: increment(item.quantity || 1)
             });
@@ -87,7 +77,6 @@ export async function getUserOrders(userId) {
         const q = query(
             collection(db, "orders"),
             where("userId", "==", userId)
-            // orderBy("createdAt", "desc") // Removed to avoid creating a manual index
         );
 
         const querySnapshot = await getDocs(q);
@@ -100,8 +89,6 @@ export async function getUserOrders(userId) {
         return orders;
     } catch (e) {
         console.error("Error getting orders: ", e);
-        // If index is missing, it might throw an error. 
-        // For simple queries it usually works, but composite queries need index.
         throw e;
     }
 }
@@ -118,8 +105,6 @@ export async function hasUserUsedCoupon(userId, couponCode) {
         return !querySnapshot.empty; // Returns true if used
     } catch (e) {
         console.error("Error checking coupon: ", e);
-        // Fail safe: If error (e.g. index missing for composite query), assume NOT used to prevent blocking.
-        // Or handle strict. For MVP, we log and return false but maybe warn user.
         return false;
     }
 }
@@ -179,11 +164,6 @@ export async function updateProduct(productId, productData) {
 
 export async function deleteProduct(productId) {
     try {
-        // Import deleteDoc if not imported yet, or use it from firestore
-        // Wait, I need to check imports at the top first!
-        // Assuming deleteDoc is imported. If not, I need to add it to imports.
-        // I will add it to the import statement in a separate step or assume I'll fix imports.
-        // Actually, let's just do the function here and I'll check imports.
         const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
         await deleteDoc(doc(db, "products", String(productId)));
         return true;
@@ -208,9 +188,6 @@ export async function setUserRole(email, role) {
 
     try {
         const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        // Store in 'user_roles' collection (cleaner than allowed_sellers)
-        // migrating logic: allowed_sellers can remain for backward compat or we just switch.
-        // Let's use 'user_roles' for the new system.
         await setDoc(doc(db, "user_roles", email), {
             email: email,
             role: role,
@@ -266,3 +243,10 @@ export async function getAllUserRoles() {
         return [];
     }
 }
+
+// 7. Coupons Data (Shared)
+export const validCoupons = {
+    'WELCOME100': { type: 'fixed', value: 100, minPurchase: 500, code: 'WELCOME100', description: '新會員見面禮 - 折抵 NT$100' },
+    'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000, code: 'VIP2024', description: 'VIP 專屬 - 全館 9 折' },
+    'FREESHIP': { type: 'shipping', value: 0, minPurchase: 0, code: 'FREESHIP', description: '限時免運費優惠' }
+};

@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getUserOrders, cancelOrder, getProducts } from './firebase_db.js';
+import { getUserOrders, cancelOrder, getProducts, hasUserUsedCoupon, validCoupons } from './firebase_db.js';
 
 const auth = getAuth();
 let currentUserOrders = []; // Store for modal access
@@ -18,11 +18,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, async (user) => {
         const orderListEl = document.getElementById('order-list');
+        const couponListEl = document.querySelector('.coupon-list');
+        const authContentWrapper = document.querySelector('.auth-content-wrapper');
 
         if (!user) {
             orderListEl.innerHTML = '<p style="text-align: center;">請先登入以查看訂單。</p>';
+            if (couponListEl) couponListEl.innerHTML = '';
             return;
         }
+
+        // --- 1. Customer Service Section (Inject) ---
+        if (authContentWrapper && !document.getElementById('service-box')) {
+            const serviceBox = document.createElement('div');
+            serviceBox.id = 'service-box';
+            serviceBox.className = 'auth-box service-box';
+            serviceBox.style.cssText = 'flex: 1; margin: 0; max-width: none; background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+            serviceBox.innerHTML = `
+                <h2><i class="fa-solid fa-headset"></i> 客戶服務</h2>
+                <div class="service-info" style="line-height: 1.8; color: #555;">
+                    <p><strong><i class="fa-solid fa-phone"></i> 客服專線：</strong> (02) 2345-6789</p>
+                    <p><strong><i class="fa-solid fa-envelope"></i> 客服信箱：</strong> service@bluecore.com</p>
+                    <p><strong><i class="fa-solid fa-clock"></i> 服務時間：</strong> 週一至週五 09:00 - 18:00</p>
+                    <div style="margin-top: 15px;">
+                        <button onclick="alert('線上客服系統維護中，請暫時使用 Email 聯繫。')" style="width: 100%; padding: 10px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            <i class="fa-brands fa-rocketchat"></i> 聯絡線上客服
+                        </button>
+                    </div>
+                </div>
+            `;
+            // Append as a third column or new row? 
+            // The wrapper is flex-direction: column on mobile. 
+            // Current wrapper has 2 boxes. Adding a 3rd one might squeeze them if horizontal.
+            // Let's check wrapper width style: "max-width: 1000px".
+            // It might be better to append it AFTER the wrapper to stack vertically broadly, 
+            // OR append inside. Let's append inside for now, flex-wrap might be needed if user didn't set check.
+            // Actually, the wrapper in HTML has "display: flex; gap: 40px; align-items: flex-start;".
+            // Adding a 3rd child will make 3 columns.
+            authContentWrapper.appendChild(serviceBox);
+        }
+
+        // --- 2. Dynamic Coupons ---
+        if (couponListEl) {
+            couponListEl.innerHTML = '<p style="text-align:center; color:#999;">載入優惠券...</p>';
+            try {
+                const couponPromises = Object.values(validCoupons).map(async (coupon) => {
+                    const isUsed = await hasUserUsedCoupon(user.uid, coupon.code);
+                    return { ...coupon, isUsed };
+                });
+
+                const coupons = await Promise.all(couponPromises);
+
+                couponListEl.innerHTML = coupons.map(coupon => {
+                    const remaining = coupon.isUsed ? 0 : 1;
+                    const statusColor = coupon.isUsed ? '#999' : 'var(--primary-color)';
+                    const statusBg = coupon.isUsed ? '#eee' : '#fff5f5';
+                    const btnStyle = coupon.isUsed
+                        ? 'background: #ccc; cursor: not-allowed; border: 1px solid #bbb; color: #666;'
+                        : 'background: white; border: 1px solid var(--primary-color); color: var(--primary-color); cursor: pointer;';
+
+                    return `
+                    <div class="coupon-item"
+                        style="border: 2px dashed ${statusColor}; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: ${statusBg}; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: bold; color: ${statusColor}; font-size: 1.1rem;">
+                                ${coupon.code}
+                                ${coupon.isUsed ? '<span style="font-size: 0.7em; color: #666; margin-left: 5px;">(已使用)</span>' : ''}
+                            </div>
+                            <div style="color: #666; font-size: 0.9rem;">${coupon.description}</div>
+                            <div style="font-size: 0.85rem; color: #444; margin-top: 5px;">
+                                <i class="fa-solid fa-ticket"></i> 剩餘次數: <strong>${remaining}</strong>/1
+                            </div>
+                        </div>
+                        <button onclick="${coupon.isUsed ? '' : `copyCoupon('${coupon.code}')`}"
+                            style="${btnStyle} padding: 5px 10px; border-radius: 4px; font-size: 0.8rem;">
+                            ${coupon.isUsed ? '已兌換' : '複製'}
+                        </button>
+                    </div>`;
+                }).join('');
+
+            } catch (err) {
+                console.error("Coupon load error", err);
+                couponListEl.innerHTML = '<p style="color: red;">載入失敗</p>';
+            }
+        }
+
 
         try {
             // Fetch Orders AND Products (for image repair)
