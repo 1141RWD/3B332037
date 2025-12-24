@@ -258,24 +258,26 @@ export async function getAllUserRoles() {
 // 7. Coupons Data (Shared)
 export const validCoupons = {
     'WELCOME100': { type: 'fixed', value: 100, minPurchase: 500, code: 'WELCOME100', description: '新會員見面禮 - 折抵 NT$100' },
-    'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000, code: 'VIP2024', description: 'VIP 專屬 - 全館 9 折' },
-    // 8. Seller Request Workflow
-    export async function submitSellerRequest(user, reason) {
-        try {
-            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-// Use UID as ID so one request per user
-await setDoc(doc(db, "seller_requests", user.uid), {
-    uid: user.uid,
-    email: user.email,
-    reason: reason,
-    status: 'pending',
-    createdAt: serverTimestamp()
-});
-return true;
+    'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000, code: 'VIP2024', description: 'VIP 專屬 - 全館 9 折' }
+};
+
+// 8. Seller Request Workflow
+export async function submitSellerRequest(user, reason) {
+    try {
+        const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        // Use UID as ID so one request per user
+        await setDoc(doc(db, "seller_requests", user.uid), {
+            uid: user.uid,
+            email: user.email,
+            reason: reason,
+            status: 'pending',
+            createdAt: serverTimestamp()
+        });
+        return true;
     } catch (e) {
-    console.error("Error submitting request:", e);
-    throw e;
-}
+        console.error("Error submitting request:", e);
+        throw e;
+    }
 }
 
 export async function getSellerRequests() {
