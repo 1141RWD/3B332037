@@ -236,6 +236,17 @@
                     <!-- Items injected via JS -->
                 </div>
 
+                <!-- Coupon Input -->
+                <div class="form-group" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                    <label for="couponCode">優惠代碼</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="couponCode" placeholder="請輸入優惠碼" style="flex: 1;">
+                        <button type="button" id="applyCouponBtn"
+                            style="padding: 10px 15px; background: #334155; color: white; border: none; border-radius: 4px; cursor: pointer;">套用</button>
+                    </div>
+                    <div id="couponMessage" style="font-size: 0.85rem; margin-top: 5px;"></div>
+                </div>
+
                 <div style="margin-top: 20px;">
                     <div class="summary-row">
                         <span>小計</span>
@@ -244,6 +255,10 @@
                     <div class="summary-row">
                         <span>運費</span>
                         <span id="shipping">NT$0</span>
+                    </div>
+                    <div class="summary-row" id="discount-row" style="display: none; color: var(--primary-color);">
+                        <span>折扣</span>
+                        <span id="discount-amount">-NT$0</span>
                     </div>
                     <div class="summary-total">
                         <span>總計</span>

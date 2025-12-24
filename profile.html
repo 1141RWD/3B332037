@@ -43,6 +43,36 @@
                 <a href="index.html">返回首頁</a>
             </div>
         </div>
+
+        <div class="auth-box coupon-box" style="margin-top: 20px;">
+            <h2><i class="fa-solid fa-ticket"></i> 我的折價券</h2>
+            <div class="coupon-list">
+                <div class="coupon-item"
+                    style="border: 2px dashed var(--primary-color); padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff5f5; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: bold; color: var(--primary-color); font-size: 1.1rem;">WELCOME100</div>
+                        <div style="color: #666; font-size: 0.9rem;">新會員見面禮 - 折抵 NT$100</div>
+                    </div>
+                    <button onclick="copyCoupon('WELCOME100')"
+                        style="background: white; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">複製</button>
+                </div>
+                <!-- 
+                <div class="coupon-item"
+                    style="border: 2px dashed #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #f9f9f9; opacity: 0.7;">
+                    <div style="font-weight: bold; color: #666; font-size: 1.1rem;">VIP2024 (已過期)</div>
+                    <div style="color: #999; font-size: 0.9rem;">VIP 專屬優惠 - 9折</div>
+                </div>
+                -->
+            </div>
+        </div>
+
+        <script>
+            function copyCoupon(code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert('優惠碼 ' + code + ' 已複製！');
+                });
+            }
+        </script>
     </div>
 
     <footer>

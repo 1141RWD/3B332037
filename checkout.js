@@ -25,6 +25,15 @@ const cityDistricts = {
     "Lienchiang": { name: "連江縣", districts: ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"] }
 };
 
+// Valid Coupons (Mock Database)
+const validCoupons = {
+    'WELCOME100': { type: 'fixed', value: 100, minPurchase: 500 },
+    'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000 }, // 10% off
+    'FREESHIP': { type: 'shipping', value: 0, minPurchase: 0 }
+};
+
+let appliedCoupon = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     loadCartForCheckout();
     initCitySelector();
@@ -32,6 +41,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', handlePlaceOrder);
+    }
+
+    const applyCouponBtn = document.getElementById('applyCouponBtn');
+    if (applyCouponBtn) {
+        applyCouponBtn.addEventListener('click', handleApplyCoupon);
     }
 });
 
@@ -66,7 +80,7 @@ function initCitySelector() {
 }
 
 function formatCurrency(amount) {
-    return 'NT$' + amount.toLocaleString();
+    return 'NT$' + Math.round(amount).toLocaleString();
 }
 
 function loadCartForCheckout() {
@@ -75,12 +89,13 @@ function loadCartForCheckout() {
     const subtotalEl = document.getElementById('subtotal');
     const shippingEl = document.getElementById('shipping');
     const totalEl = document.getElementById('total');
+    const discountRow = document.getElementById('discount-row');
+    const discountAmountEl = document.getElementById('discount-amount');
 
     if (!container) return;
 
     if (cart.length === 0) {
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">購物車是空的</div>';
-        // Disable button?
         const btn = document.querySelector('.place-order-btn');
         if (btn) {
             btn.disabled = true;
@@ -103,20 +118,73 @@ function loadCartForCheckout() {
 
     // Calculations
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal >= 499 ? 0 : 60; // Free shipping over 499
-    const total = subtotal + shipping;
+    let shipping = subtotal >= 499 ? 0 : 60; // Free shipping over 499
+    let discount = 0;
+
+    // Apply Coupon
+    if (appliedCoupon) {
+        // Validate Requirement
+        if (subtotal < appliedCoupon.minPurchase) {
+            alert(`此優惠券需消費滿 ${formatCurrency(appliedCoupon.minPurchase)} 才能使用！`);
+            appliedCoupon = null; // Remove invalid coupon
+            document.getElementById('couponMessage').textContent = '';
+            document.getElementById('couponCode').value = '';
+        } else {
+            if (appliedCoupon.type === 'fixed') {
+                discount = appliedCoupon.value;
+            } else if (appliedCoupon.type === 'percent') {
+                discount = subtotal * (1 - appliedCoupon.value);
+            } else if (appliedCoupon.type === 'shipping') {
+                shipping = 0;
+            }
+        }
+    }
+
+    if (discount > 0) {
+        discountRow.style.display = 'flex';
+        discountAmountEl.textContent = '-' + formatCurrency(discount);
+    } else if (appliedCoupon && appliedCoupon.type === 'shipping') {
+        discountRow.style.display = 'none'; // Shipping discount handled in shipping cost
+    } else {
+        discountRow.style.display = 'none';
+    }
+
+    const total = subtotal + shipping - discount;
 
     subtotalEl.textContent = formatCurrency(subtotal);
     shippingEl.textContent = shipping === 0 ? '免運費' : formatCurrency(shipping);
     totalEl.textContent = formatCurrency(total);
 }
 
+function handleApplyCoupon() {
+    const codeInput = document.getElementById('couponCode');
+    const msg = document.getElementById('couponMessage');
+    const code = codeInput.value.trim().toUpperCase();
+
+    if (!code) return;
+
+    if (validCoupons[code]) {
+        appliedCoupon = validCoupons[code];
+        msg.textContent = '✅ 優惠券已套用';
+        msg.style.color = 'green';
+        loadCartForCheckout(); // Recalculate
+    } else {
+        appliedCoupon = null;
+        msg.textContent = '❌ 無效的優惠代碼';
+        msg.style.color = 'red';
+        loadCartForCheckout(); // Reset
+    }
+}
+
 function handlePlaceOrder(e) {
     e.preventDefault();
 
+    // Validate if cart is empty again
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    if (cart.length === 0) return;
+
     // Simulate API Call / Processing
     const btn = document.querySelector('.place-order-btn');
-    const originalText = btn.textContent;
     btn.disabled = true;
     btn.textContent = '訂單處理中...';
 

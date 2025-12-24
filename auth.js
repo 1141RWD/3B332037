@@ -98,8 +98,18 @@ if (loginForm) {
             const user = userCredential.user;
 
             if (!user.emailVerified) {
+                // Determine if we should ask to resend
+                if (confirm('您的帳號尚未通過驗證！\n\n請問您是否需要重新發送驗證信？\n(若不需要，請按取消並前往信箱收信)')) {
+                    try {
+                        await sendEmailVerification(user);
+                        alert('✅ 驗證信已重新發送！請檢查您的信箱。');
+                    } catch (emailError) {
+                        // Sometimes fails if too many requests
+                        alert('發送失敗 (可能請求過於頻繁)：' + emailError.message);
+                    }
+                }
+
                 await signOut(auth);
-                alert('請先前往信箱點擊驗證連結啟用帳號，才能登入喔！');
                 return;
             }
 
