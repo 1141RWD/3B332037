@@ -129,5 +129,136 @@ const products = [
             colors: ["經典灰", "米杏色", "深藍色"],
             specs: ["雙人座", "三人座"]
         }
+    },
+    // Fashion
+    {
+        id: 12,
+        title: "Nike Air Force 1 '07 - Triple White",
+        price: 3400,
+        image: "images/airforce.jpg",
+        sold: 5000 + "+",
+        category: "fashion",
+        options: {
+            specs: ["US 8", "US 9", "US 10", "US 11"],
+            colors: ["White", "Black"]
+        }
+    },
+    {
+        id: 13,
+        title: "Essential Omni-Tech™ 防水透氣外套",
+        price: 4980,
+        image: "images/omnitech.jpg",
+        sold: 210,
+        category: "fashion",
+        options: {
+            specs: ["S", "M", "L", "XL"],
+            colors: ["黑色", "藏青色", "軍綠色"]
+        }
+    },
+    {
+        id: 14,
+        title: "RayBan 雷朋 飛行員經典太陽眼鏡",
+        price: 5200,
+        image: "images/rayban.webp",
+        sold: 89,
+        category: "fashion",
+        options: {
+            colors: ["金色/綠片", "黑色/黑片"]
+        }
+    },
+    // Food
+    {
+        id: 15,
+        title: "日本 A5 和牛燒肉片 (200g)",
+        price: 2900,
+        image: "images/meat.jpg",
+        sold: 560,
+        category: "food",
+        options: {}
+    },
+    {
+        id: 16,
+        title: "BlueBottle 藍瓶咖啡豆 - Bella Donovan",
+        price: 850,
+        image: "images/bluebottle.jpg",
+        sold: 1200,
+        category: "food",
+        options: {
+            specs: ["200g 入", "500g 入"]
+        }
+    },
+    {
+        id: 17,
+        title: "ON 金牌乳清蛋白粉 - 雙倍巧克力",
+        price: 2199,
+        image: "images/onchoco.jpg",
+        sold: 3400,
+        category: "food",
+        options: {
+            specs: ["5磅"]
+        }
+    },
+    // Beauty (Enrich)
+    {
+        id: 18,
+        title: "SK-II 青春露 (230ml)",
+        price: 4110,
+        image: "images/sk2.webp",
+        sold: 800,
+        category: "beauty",
+        options: {}
+    },
+    {
+        id: 19,
+        title: "Aesop 賦活芳香護手霜",
+        price: 900,
+        image: "images/aesop.jpg",
+        sold: 2200,
+        category: "beauty",
+        options: {}
+    },
+    // Lifestyle (Enrich)
+    {
+        id: 20,
+        title: "Muuto 丹麥設計吊燈",
+        price: 12800,
+        image: "images/lights.webp",
+        sold: 45,
+        category: "lifestyle",
+        options: {
+            colors: ["灰綠色", "白色", "黑色"]
+        }
+    },
+    {
+        id: 21,
+        title: "Herman Miller Aeron 人體工學椅",
+        price: 23400,
+        image: "images/chair.jpg",
+        sold: 30,
+        category: "lifestyle",
+        options: {
+            specs: ["Size B", "Size C"]
+        }
+    },
+    // Auto (Enrich)
+    {
+        id: 22,
+        title: "Mio MiVue™ 汽車行車記錄器 (前後雙鏡)",
+        price: 5990,
+        image: "images/mio.jpg",
+        sold: 300,
+        category: "auto",
+        options: {}
+    },
+    {
+        id: 23,
+        title: "Baseus 倍思 車用磁吸手機支架",
+        price: 490,
+        image: "images/baseus.jpg   ",
+        sold: 5000 + "+",
+        category: "auto",
+        options: {
+            colors: ["黑色", "銀色"]
+        }
     }
 ];
