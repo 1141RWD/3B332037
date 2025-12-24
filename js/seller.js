@@ -392,7 +392,74 @@ async function initUserManagement() {
     // Also allow superuser hardcode
     if (role === 'admin') {
         section.style.display = 'block';
+        loadSellerRequests(); // New: Load Requests
         loadUserList();
+    }
+}
+
+// 6.1 Seller Requests
+async function loadSellerRequests() {
+    const container = document.getElementById('seller-requests-container');
+    if (!container) return; // Needs HTML update to add this container
+
+    container.innerHTML = '<p>載入申請中...</p>';
+
+    try {
+        const { getSellerRequests, resolveSellerRequest } = await import('./firebase_db.js');
+        const requests = await getSellerRequests();
+
+        if (requests.length === 0) {
+            container.innerHTML = '<p style="color:#888;">目前沒有待審核的申請。</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="product-table" style="margin-bottom:20px; border:2px solid #eab308;">
+                <thead style="background:#fef9c3;">
+                    <tr>
+                        <th>申請人 (UID/Email)</th>
+                        <th>理由</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${requests.map(req => `
+                        <tr>
+                            <td>
+                                <div>${req.uid.substring(0, 6)}...</div>
+                                <div style="font-size:0.8em; color:#666;">${req.email}</div>
+                            </td>
+                            <td>${req.reason}</td>
+                            <td>
+                                <button class="btn-primary" style="padding:4px 8px; font-size:0.8em;" onclick="handleRequest('${req.uid}', true)">
+                                    <i class="fa-solid fa-check"></i> 核准
+                                </button>
+                                <button class="btn-secondary" style="padding:4px 8px; font-size:0.8em;" onclick="handleRequest('${req.uid}', false)">
+                                    <i class="fa-solid fa-xmark"></i> 拒絕
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+        window.handleRequest = async (uid, approve) => {
+            if (!confirm(approve ? '確定將此用戶升級為賣家？' : '確定拒絕此申請？')) return;
+            try {
+                await resolveSellerRequest(uid, approve);
+                showToast(approve ? '已核准申請' : '已拒絕申請', 'success');
+                loadSellerRequests(); // Reload requests
+                loadUserList(); // Reload main list to see new role
+            } catch (e) {
+                console.error(e);
+                showToast('操作失敗', 'error');
+            }
+        };
+
+    } catch (e) {
+        console.error("Requests Error", e);
+        container.innerHTML = '<p style="color:red;">無法載入申請</p>';
     }
 }
 

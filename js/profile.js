@@ -44,17 +44,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-envelope"></i> 寄信給客服
                         </a>
                     </div>
+                    <div style="margin-top: 10px; border-top: 1px dashed #eee; padding-top: 10px;">
+                        <button id="btn-apply-seller" style="background:none; border:none; color:#666; text-decoration:underline; cursor:pointer; width:100%;">
+                            <i class="fa-solid fa-store"></i> 我想成為賣家
+                        </button>
+                    </div>
                 </div>
             `;
-            // Append as a third column or new row? 
-            // The wrapper is flex-direction: column on mobile. 
-            // Current wrapper has 2 boxes. Adding a 3rd one might squeeze them if horizontal.
-            // Let's check wrapper width style: "max-width: 1000px".
-            // It might be better to append it AFTER the wrapper to stack vertically broadly, 
-            // OR append inside. Let's append inside for now, flex-wrap might be needed if user didn't set check.
-            // Actually, the wrapper in HTML has "display: flex; gap: 40px; align-items: flex-start;".
-            // Adding a 3rd child will make 3 columns.
             authContentWrapper.appendChild(serviceBox);
+
+            // Bind Apply Event
+            setTimeout(() => {
+                const applyBtn = document.getElementById('btn-apply-seller');
+                if (applyBtn) {
+                    applyBtn.addEventListener('click', async () => {
+                        const reason = prompt("請輸入您的申請理由 (例如: 我有許多二手 3C 產品想販售)：");
+                        if (reason) {
+                            try {
+                                const { submitSellerRequest } = await import('./firebase_db.js');
+                                await submitSellerRequest(user, reason);
+                                alert('申請已送出！管理員審核通過後，您下次登入即可看到賣家中心。');
+                            } catch (e) {
+                                alert('申請失敗: ' + e.message);
+                            }
+                        }
+                    });
+                }
+            }, 0);
         }
 
         // --- 2. Dynamic Coupons ---

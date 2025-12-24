@@ -259,5 +259,63 @@ export async function getAllUserRoles() {
 export const validCoupons = {
     'WELCOME100': { type: 'fixed', value: 100, minPurchase: 500, code: 'WELCOME100', description: '新會員見面禮 - 折抵 NT$100' },
     'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000, code: 'VIP2024', description: 'VIP 專屬 - 全館 9 折' },
-    'FREESHIP': { type: 'shipping', value: 0, minPurchase: 0, code: 'FREESHIP', description: '限時免運費優惠' }
-};
+    // 8. Seller Request Workflow
+    export async function submitSellerRequest(user, reason) {
+        try {
+            const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+// Use UID as ID so one request per user
+await setDoc(doc(db, "seller_requests", user.uid), {
+    uid: user.uid,
+    email: user.email,
+    reason: reason,
+    status: 'pending',
+    createdAt: serverTimestamp()
+});
+return true;
+    } catch (e) {
+    console.error("Error submitting request:", e);
+    throw e;
+}
+}
+
+export async function getSellerRequests() {
+    const requests = [];
+    try {
+        const q = query(
+            collection(db, "seller_requests"),
+            where("status", "==", "pending"),
+            orderBy("createdAt", "desc")
+        );
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            requests.push(doc.data());
+        });
+        return requests;
+    } catch (e) {
+        console.error("Error getting requests:", e);
+        // Index might be needed for composite query
+        return [];
+    }
+}
+
+export async function resolveSellerRequest(uid, isApproved) {
+    // Import atomic update
+    const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+
+    try {
+        // 1. Update Request Status
+        await updateDoc(doc(db, "seller_requests", uid), {
+            status: isApproved ? 'approved' : 'rejected',
+            resolvedAt: serverTimestamp()
+        });
+
+        // 2. If Approved, Set Role
+        if (isApproved) {
+            await setUserRole(uid, 'seller', 'Approved-Request');
+        }
+        return true;
+    } catch (e) {
+        console.error("Error resolving request:", e);
+        throw e;
+    }
+}
