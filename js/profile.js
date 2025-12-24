@@ -37,12 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h2><i class="fa-solid fa-headset"></i> 客戶服務</h2>
                 <div class="service-info" style="line-height: 1.8; color: #555;">
                     <p><strong><i class="fa-solid fa-phone"></i> 客服專線：</strong> (02) 2345-6789</p>
-                    <p><strong><i class="fa-solid fa-envelope"></i> 客服信箱：</strong> service@bluecore.com</p>
+                    <p><strong><i class="fa-solid fa-envelope"></i> 客服信箱：</strong> bluecore.mart@gmail.com</p>
                     <p><strong><i class="fa-solid fa-clock"></i> 服務時間：</strong> 週一至週五 09:00 - 18:00</p>
                     <div style="margin-top: 15px;">
-                        <button onclick="alert('線上客服系統維護中，請暫時使用 Email 聯繫。')" style="width: 100%; padding: 10px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer;">
-                            <i class="fa-brands fa-rocketchat"></i> 聯絡線上客服
-                        </button>
+                        <a href="mailto:bluecore.mart@gmail.com" style="display: block; width: 100%; padding: 10px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; text-align: center;">
+                            <i class="fa-solid fa-envelope"></i> 寄信給客服
+                        </a>
                     </div>
                 </div>
             `;
