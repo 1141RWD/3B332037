@@ -54,7 +54,7 @@ async function loadProducts() {
         }
 
         listBody.innerHTML = products.map(p => `
-    < tr >
+            <tr>
                 <td><img src="${p.image}" class="product-thumb" onerror="this.src='https://via.placeholder.com/60'"></td>
                 <td>${p.title}</td>
                 <td>NT$${p.price.toLocaleString()}</td>
@@ -64,7 +64,7 @@ async function loadProducts() {
                     <button class="action-btn edit-btn" onclick="editProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
                     <button class="action-btn delete-btn" onclick="removeProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
                 </td>
-            </tr >
+            </tr>
     `).join('');
 
         // Cache products for editing
