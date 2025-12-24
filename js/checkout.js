@@ -34,6 +34,7 @@ let appliedCoupon = null;
 document.addEventListener('DOMContentLoaded', () => {
     loadCartForCheckout();
     initCitySelector();
+    initCouponSelector();
 
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) {
@@ -45,6 +46,95 @@ document.addEventListener('DOMContentLoaded', () => {
         applyCouponBtn.addEventListener('click', handleApplyCoupon);
     }
 });
+
+function initCouponSelector() {
+    const modal = document.getElementById('couponModal');
+    const openBtn = document.getElementById('openCouponModalBtn');
+    const closeBtn = document.getElementById('closeCouponModal');
+    const listContainer = document.getElementById('couponListContainer');
+    const codeInput = document.getElementById('couponCode');
+
+    if (!modal || !openBtn) return;
+
+    openBtn.addEventListener('click', () => {
+        renderCouponList();
+        modal.style.display = 'block';
+    });
+
+    closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
+
+    async function renderCouponList() {
+        listContainer.innerHTML = '<p style="text-align:center; padding: 20px;">檢查優惠券中...</p>';
+
+        // Calculate current subtotal for filtering
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const currentSubtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        if (!validCoupons || Object.keys(validCoupons).length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: #888;">目前沒有可用的優惠券</p>';
+            return;
+        }
+
+        const auth = getAuth();
+        const user = auth.currentUser;
+
+        let availableCoupons = [];
+
+        // 1. Filter by Amount
+        let couponsAmountOK = Object.values(validCoupons).filter(c => currentSubtotal >= c.minPurchase);
+
+        // 2. Filter by Usage (if logged in)
+        if (user) {
+            for (const coupon of couponsAmountOK) {
+                const isUsed = await hasUserUsedCoupon(user.uid, coupon.code);
+                if (!isUsed) {
+                    availableCoupons.push(coupon);
+                }
+            }
+        } else {
+            // Not logged in -> assume available (will fail at checkout step if actually used)
+            availableCoupons = couponsAmountOK;
+        }
+
+        if (availableCoupons.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding: 20px; color: #888;">
+                    <i class="fa-solid fa-ticket-simple" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <p>目前沒有符合條件的優惠券</p>
+                    <small>（未達門檻或已使用過）</small>
+                </div>`;
+            return;
+        }
+
+        listContainer.innerHTML = availableCoupons.map(coupon => {
+            return `
+            <div class="coupon-item" onclick="selectCoupon('${coupon.code}')" 
+                style="border: 1px dashed #cbd5e1; border-radius: 8px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: bold; color: #0284c7; font-size: 1.1rem;">${coupon.code}</div>
+                    <div style="color: #64748b; font-size: 0.9rem;">${coupon.description}</div>
+                </div>
+                <button style="background: #0ea5e9; color: white; border: none; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; cursor: pointer;">
+                    使用
+                </button>
+            </div>
+            `;
+        }).join('');
+    }
+
+    window.selectCoupon = function (code) {
+        codeInput.value = code;
+        modal.style.display = 'none';
+        // Auto apply
+        document.getElementById('applyCouponBtn').click();
+    };
+}
 
 function initCitySelector() {
     const citySelect = document.getElementById('city');

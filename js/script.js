@@ -138,6 +138,21 @@ function openProductModal(productId) {
     selectedOptions = {}; // Reset selections
 
     const modal = document.getElementById('product-modal');
+    // Inject CSS for new modal styles
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .modal-options { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .option-btn { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn:hover { border-color: #888; }
+        .option-btn.selected { border: 2px solid #0071e3; color: #0071e3; }
+        .option-btn span { pointer-events: none; }
+    `;
+    document.head.appendChild(style);
+
     const modalBody = document.getElementById('modal-body');
 
     // Generate Options HTML
@@ -148,9 +163,17 @@ function openProductModal(productId) {
             <div class="modal-option-group">
                 <label class="modal-option-label">顏色 / Color</label>
                 <div class="modal-options">
-                    ${product.options.colors.map(color =>
-                `<button class="option-btn" onclick="selectOption('color', '${color}', this)">${color}</button>`
-            ).join('')}
+                    ${product.options.colors.map(color => {
+                // Check for price modifier
+                let price = product.price;
+                if (product.options.priceModifiers && product.options.priceModifiers[color]) {
+                    price += product.options.priceModifiers[color];
+                }
+                return `<button class="option-btn" onclick="selectOption('color', '${color}', this)">
+                            <span>${color}</span>
+                            <span class="opt-price" style="font-size:0.9em; opacity:0.8;">${formatCurrency(price)}</span>
+                        </button>`;
+            }).join('')}
                 </div>
             </div>`;
         }
@@ -159,9 +182,17 @@ function openProductModal(productId) {
             <div class="modal-option-group">
                 <label class="modal-option-label">規格 / Spec</label>
                 <div class="modal-options">
-                    ${product.options.specs.map(spec =>
-                `<button class="option-btn" onclick="selectOption('spec', '${spec}', this)">${spec}</button>`
-            ).join('')}
+                    ${product.options.specs.map(spec => {
+                // Check for price modifier
+                let price = product.price;
+                if (product.options.priceModifiers && product.options.priceModifiers[spec]) {
+                    price += product.options.priceModifiers[spec];
+                }
+                return `<button class="option-btn" onclick="selectOption('spec', '${spec}', this)">
+                            <span>${spec}</span>
+                            <span class="opt-price" style="font-size:0.9em; opacity:0.8;">${formatCurrency(price)}</span>
+                        </button>`;
+            }).join('')}
                 </div>
             </div>`;
         }

@@ -253,9 +253,42 @@ form.addEventListener('submit', async (e) => {
     const colorsInput = document.getElementById('p-colors').value;
     const specsInput = document.getElementById('p-specs').value;
 
+    const specsRaw = specsInput ? specsInput.split(',').map(s => s.trim()).filter(s => s) : [];
+    const specs = [];
+    const priceModifiers = {};
+
+    specsRaw.forEach(rawSpec => {
+        // Match "Name : + 3000" or "Name : 3000" or "Name:+3000"
+        // Regex: /[:：]\s*\+?\s*(\d+)/
+        // But simpler: look for the last colon
+        const separatorIdx = rawSpec.lastIndexOf(':');
+
+        let processed = false;
+        if (separatorIdx > -1) {
+            const specPart = rawSpec.substring(0, separatorIdx);
+            const pricePart = rawSpec.substring(separatorIdx + 1);
+
+            // Check if pricePart is a valid number (allowing + sign)
+            const priceClean = pricePart.replace('+', '').trim();
+            const addPrice = parseInt(priceClean);
+
+            if (!isNaN(addPrice) && specPart.trim().length > 0) {
+                const cleanName = specPart.trim();
+                specs.push(cleanName);
+                priceModifiers[cleanName] = addPrice;
+                processed = true;
+            }
+        }
+
+        if (!processed) {
+            specs.push(rawSpec);
+        }
+    });
+
     const options = {
         colors: colorsInput ? colorsInput.split(',').map(s => s.trim()).filter(s => s) : [],
-        specs: specsInput ? specsInput.split(',').map(s => s.trim()).filter(s => s) : []
+        specs: specs,
+        priceModifiers: priceModifiers
     };
 
     const data = {
