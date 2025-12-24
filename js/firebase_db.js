@@ -244,9 +244,18 @@ export async function getAllUserRoles() {
     const users = [];
     try {
         console.log("getAllUserRoles: Start");
+        // Create a timeout promise
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Query Timed Out")), 5000));
+
         const q = query(collection(db, "user_roles"));
         console.log("getAllUserRoles: Executing query...");
-        const querySnapshot = await getDocs(q);
+
+        // Race getDocs against timeout
+        const querySnapshot = await Promise.race([
+            getDocs(q),
+            timeout
+        ]);
+
         console.log("getAllUserRoles: Got snapshot, size=" + querySnapshot.size);
         querySnapshot.forEach((doc) => {
             users.push(doc.data());

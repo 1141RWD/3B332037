@@ -1,4 +1,4 @@
-import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js?v=3';
+import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js?v=4';
 
 import { onAuthStateChanged, getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -465,7 +465,7 @@ async function loadSellerRequests() {
 
 async function loadUserList() {
     const list = document.getElementById('user-role-list');
-    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中 (v3)...</td></tr>';
+    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中 (v4-TimeoutCheck)...</td></tr>';
 
     const users = await getAllUserRoles();
     if (users.length === 0) {
