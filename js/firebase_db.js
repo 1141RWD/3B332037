@@ -28,16 +28,52 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
 
 // 1. Create a New Order
+// 1. Create a New Order (and Update Sold Counts)
 export async function createOrder(userId, orderData) {
+    // Import batch and atomic utils
+    const { writeBatch, increment } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    const batch = writeBatch(db);
+
     try {
-        const docRef = await addDoc(collection(db, "orders"), {
+        // A. Prepare Order Document
+        const orderRef = doc(collection(db, "orders")); // Generate ID first
+        batch.set(orderRef, {
             userId: userId,
             ...orderData,
             createdAt: serverTimestamp(),
-            status: "Processing" // Default status
+            status: "Processing"
         });
-        console.log("Order written with ID: ", docRef.id);
-        return docRef.id;
+
+        // B. Increment Sold Count for each item
+        const items = orderData.items || [];
+        items.forEach(item => {
+            // Need to handle both string ID (legacy/variant) and number ID
+            // Using item.originalId if available (from variants logic) or item.id
+            // But wait, the main product doc ID is needed.
+            // If item.id is "1-Red-L", the doc ID is likely "1".
+            // Let's assume item.id is the doc ID if simple, or item.originalId if variant.
+
+            let productDocId = String(item.originalId || item.id);
+            // If the ID contains hyphen (variant), try to split to get base ID if originalId is missing
+            if ((!item.originalId) && productDocId.includes('-')) {
+                productDocId = productDocId.split('-')[0];
+            }
+
+            // Reference to the product document
+            const productRef = doc(db, "products", productDocId);
+
+            // Atomic Increment
+            batch.update(productRef, {
+                sold: increment(item.quantity || 1)
+            });
+        });
+
+        // C. Commit Batch
+        await batch.commit();
+
+        console.log("Order written with ID: ", orderRef.id);
+        return orderRef.id;
+
     } catch (e) {
         console.error("Error adding order: ", e);
         throw e;

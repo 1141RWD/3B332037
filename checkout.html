@@ -143,6 +143,70 @@
         .place-order-btn:hover {
             background: var(--primary-dark);
         }
+
+        /* Custom Confirm Modal */
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirm-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            min-width: 300px;
+            animation: fadeIn 0.3s;
+        }
+
+        .confirm-modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn-cancel {
+            padding: 8px 20px;
+            background: #f1f5f9;
+            color: #64748b;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-confirm {
+            padding: 8px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 
@@ -283,6 +347,18 @@
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/ui.js"></script>
     <script type="module" src="js/checkout.js"></script>
+
+    <!-- Custom Confirm Modal -->
+    <div id="deleteConfirmModal" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <h3 style="margin-bottom: 10px; color: #1e293b;">確認刪除</h3>
+            <p style="color: #64748b;">您確定要將此商品移除嗎？</p>
+            <div class="confirm-modal-actions">
+                <button class="btn-cancel" onclick="closeDeleteModal()">取消</button>
+                <button class="btn-confirm" onclick="confirmDeleteItem()">確定移除</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

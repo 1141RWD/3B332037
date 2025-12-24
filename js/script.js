@@ -79,8 +79,8 @@ async function init() {
 
         // Dynamic Hero Section
         if (products.length > 0) {
-            // Pick the most expensive item as Hero
-            const heroProduct = [...products].sort((a, b) => b.price - a.price)[0];
+            // Pick the Best Seller as Hero
+            const heroProduct = [...products].sort((a, b) => (b.sold || 0) - (a.sold || 0))[0];
             updateHeroSection(heroProduct);
         }
 
@@ -476,6 +476,7 @@ window.addToCart = addToCart;
 document.addEventListener('DOMContentLoaded', () => {
     // Initial Render
     init();
+    updateCartUI(); // FIX: Sync cart UI with localStorage on load
 
     // Category Toggle
     const categoryToggle = document.getElementById('categories-toggle');

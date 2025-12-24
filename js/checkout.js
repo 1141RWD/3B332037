@@ -112,7 +112,16 @@ function loadCartForCheckout() {
             <img src="${item.image}" onerror="this.src='https://via.placeholder.com/60?text=No+Img'" alt="${item.title}">
             <div class="checkout-item-info">
                 <div class="checkout-item-title">${item.title}</div>
-                <div class="checkout-item-meta">數量: ${item.quantity}</div>
+                <div class="checkout-item-meta" style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                    <div style="display: flex; align-items: center; border: 1px solid #ddd; border-radius: 4px;">
+                        <button type="button" onclick="updateCheckoutQuantity('${item.id}', -1)" style="border:none; background:white; padding: 2px 8px; cursor: pointer;">-</button>
+                        <span style="padding: 0 5px; font-size: 0.9em;">${item.quantity}</span>
+                        <button type="button" onclick="updateCheckoutQuantity('${item.id}', 1)" style="border:none; background:white; padding: 2px 8px; cursor: pointer;">+</button>
+                    </div>
+                    <button type="button" onclick="removeCheckoutItem('${item.id}')" style="border:none; background:none; color: #ef4444; cursor: pointer;">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
             </div>
             <div class="checkout-item-price">${formatCurrency(item.price * item.quantity)}</div>
         </div>
@@ -289,3 +298,54 @@ function handlePlaceOrder(e) {
             btn.textContent = '確認結帳';
         });
 }
+
+// Interactive Checkout Functions
+let pendingDeleteId = null;
+
+window.updateCheckoutQuantity = function (itemId, change) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const item = cart.find(i => i.id == itemId);
+    if (!item) return;
+
+    if (item.quantity + change <= 0) {
+        // Trigger Modal
+        window.openDeleteModal(itemId);
+    } else {
+        item.quantity += change;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        loadCartForCheckout();
+    }
+};
+
+window.removeCheckoutItem = function (itemId) {
+    window.openDeleteModal(itemId);
+};
+
+// Modal Logic
+window.openDeleteModal = function (id) {
+    pendingDeleteId = id;
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+};
+
+window.closeDeleteModal = function () {
+    pendingDeleteId = null;
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
+window.confirmDeleteItem = function () {
+    if (!pendingDeleteId) return;
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart = cart.filter(i => i.id != pendingDeleteId);
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    loadCartForCheckout(); // Re-render
+
+    closeDeleteModal();
+};
