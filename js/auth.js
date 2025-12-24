@@ -34,7 +34,7 @@ if (registerForm) {
         // reCAPTCHA Check
         const recaptchaResponse = grecaptcha.getResponse();
         if (recaptchaResponse.length === 0) {
-            alert('請勾選「我不是機器人」！');
+            showToast('請勾選「我不是機器人」！', 'error');
             return;
         }
 
@@ -44,7 +44,7 @@ if (registerForm) {
         const confirmPassword = document.getElementById('confirm_password').value;
 
         if (password !== confirmPassword) {
-            alert('兩次密碼輸入不一致！');
+            showToast('兩次密碼輸入不一致！', 'error');
             return;
         }
 
@@ -63,8 +63,10 @@ if (registerForm) {
             // Force Sign Out
             await signOut(auth);
 
-            alert('註冊成功！驗證信已發送至您的信箱，請前往點擊連結以啟用帳號。');
-            window.location.href = 'login.html';
+            showToast('註冊成功！驗證信已發送，請啟用帳號後登入。', 'success');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
         } catch (error) {
             let msg = '註冊失敗：' + error.message;
             if (error.code === 'auth/email-already-in-use') {
@@ -72,7 +74,7 @@ if (registerForm) {
             } else if (error.code === 'auth/weak-password') {
                 msg = '密碼強度不足（至少6位數）';
             }
-            alert(msg);
+            showToast(msg, 'error');
         }
     });
 }
@@ -99,13 +101,14 @@ if (loginForm) {
 
             if (!user.emailVerified) {
                 // Determine if we should ask to resend
-                if (confirm('您的帳號尚未通過驗證！\n\n請問您是否需要重新發送驗證信？\n(若不需要，請按取消並前往信箱收信)')) {
+                const shouldResend = await showConfirm('您的帳號尚未通過驗證！\n\n請問您是否需要重新發送驗證信？\n(若不需要，請按取消並前往信箱收信)');
+                if (shouldResend) {
                     try {
                         await sendEmailVerification(user);
-                        alert('✅ 驗證信已重新發送！請檢查您的信箱。');
+                        showToast('✅ 驗證信已重新發送！請檢查您的信箱。', 'success');
                     } catch (emailError) {
                         // Sometimes fails if too many requests
-                        alert('發送失敗 (可能請求過於頻繁)：' + emailError.message);
+                        showToast('發送失敗 (可能請求過於頻繁)：' + emailError.message, 'error');
                     }
                 }
 
@@ -113,14 +116,16 @@ if (loginForm) {
                 return;
             }
 
-            alert('登入成功！');
-            window.location.href = 'index.html';
+            showToast('登入成功！', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 500);
         } catch (error) {
             let msg = '登入失敗：' + error.message;
             if (error.code === 'auth/invalid-credential') {
                 msg = '帳號或密碼錯誤！';
             }
-            alert(msg);
+            showToast(msg, 'error');
         }
     });
 }
@@ -164,25 +169,26 @@ if (profileForm) {
 
             if (updates.length > 0) {
                 await Promise.all(updates);
-                alert('資料更新成功！');
+                showToast('資料更新成功！', 'success');
                 if (newPassword) {
-                    alert('密碼已修改，下次請使用新密碼登入。');
+                    showToast('密碼已修改，下次請使用新密碼登入。', 'info');
                 }
                 // Refresh to show new name
-                window.location.reload();
+                setTimeout(() => window.location.reload(), 1000);
             } else {
-                alert('沒有資料被修改。');
+                showToast('沒有資料被修改。', 'info');
             }
         } catch (error) {
             let msg = '更新失敗：' + error.message;
             if (error.code === 'auth/requires-recent-login') {
                 msg = '為了安全，修改密碼需要重新登入後才能操作！請問您要現在重新登入嗎？';
-                if (confirm(msg)) {
+                const shouldRelogin = await showConfirm(msg);
+                if (shouldRelogin) {
                     await signOut(auth);
                     window.location.href = 'login.html';
                 }
             } else {
-                alert(msg);
+                showToast(msg, 'error');
             }
         }
     });

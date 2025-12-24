@@ -125,13 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.cancel-order-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     const orderId = e.target.closest('button').dataset.id;
-                    if (confirm('確定要取消這筆訂單嗎？\n\n取消後無法恢復，需要重新下單。')) {
+                    const confirmed = await showConfirm('確定要取消這筆訂單嗎？\n\n取消後無法恢復，需要重新下單。');
+                    if (confirmed) {
                         try {
                             await cancelOrder(orderId);
-                            alert('訂單已取消');
-                            location.reload(); // Simple reload to refresh status
+                            showToast('訂單已取消', 'success');
+                            setTimeout(() => location.reload(), 500); // Slight delay for toast
                         } catch (err) {
-                            alert('取消失敗：' + err.message);
+                            showToast('取消失敗：' + err.message, 'error');
                         }
                     }
                 });
