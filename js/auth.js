@@ -154,7 +154,7 @@ if (profileForm) {
                 try {
                     // Dynamic Import to avoid circular dependencies if any (though getUserRole is safe)
                     const { getUserRole } = await import('./firebase_db.js');
-                    const role = await getUserRole(user.email);
+                    const role = await getUserRole(user.uid, user.email);
 
                     // Map role to Chinese
                     const roleName = {
