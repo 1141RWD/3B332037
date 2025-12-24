@@ -176,26 +176,98 @@ function handleApplyCoupon() {
     }
 }
 
+import { createOrder } from './firebase_db.js';
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// ... (existing imports or setup if any, but currently none)
+
 function handlePlaceOrder(e) {
     e.preventDefault();
 
-    // Validate if cart is empty again
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    // Optional: Enforce Login
+    if (!user) {
+        if (confirm('您尚未登入！\n\n登入後才能保存訂單記錄以便日後查詢。\n要現在去登入嗎？')) {
+            window.location.href = 'login.html';
+            return;
+        }
+        // If they choose not to login, we can strictly block or allow as guest.
+        // For this feature "Order History", we generally need a user. 
+        // Let's block for now to ensure data integrity for the requested feature.
+        return;
+    }
+
+    // Validate Cart
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     if (cart.length === 0) return;
 
-    // Simulate API Call / Processing
+    // Collect Form Data
+    const formData = {
+        recipient: {
+            lastName: document.getElementById('lastName').value,
+            firstName: document.getElementById('firstName').value,
+            phone: document.getElementById('phone').value,
+            email: document.getElementById('email').value,
+            city: document.getElementById('city').value,
+            district: document.getElementById('district').value,
+            address: document.getElementById('address').value
+        },
+        paymentMethod: document.querySelector('input[name="payment"]:checked').value
+    };
+
+    // Calculate Totals
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Re-calculate shipping (logic must match loadCartForCheckout ideally, or we trust visual)
+    // Note: appliedCoupon is a local variable in the module scope (if defined above).
+    // careful: checkout.js was just script, now module. Vars are scoped to module.
+    // 'appliedCoupon' needs to be accessible. It is defined in global scope in original file?
+    // In original file, 'appliedCoupon' was top level. It works.
+
+    // We need to re-calculate final total to be safe or define global getters. 
+    // Simply grabbing text content is risky but easier for MVP.
+    // Better: Reuse the calculation logic.
+
+    let shipping = subtotal >= 499 ? 0 : 60;
+    if (appliedCoupon && appliedCoupon.type === 'shipping') shipping = 0;
+
+    let discount = 0;
+    if (appliedCoupon) {
+        if (appliedCoupon.type === 'fixed') discount = appliedCoupon.value;
+        else if (appliedCoupon.type === 'percent') discount = subtotal * (1 - appliedCoupon.value);
+    }
+
+    const total = subtotal + shipping - discount;
+
+    // Build Order Object
+    const orderData = {
+        items: cart,
+        subtotal: subtotal,
+        shippingFee: shipping,
+        discount: discount,
+        total: total,
+        recipient: formData,
+        paymentMethod: formData.paymentMethod,
+        couponApplied: appliedCoupon ? appliedCoupon.code : null // Assuming we store code in appliedCoupon if possible, or just ignore
+    };
+
+    // UI Feedback
     const btn = document.querySelector('.place-order-btn');
     btn.disabled = true;
     btn.textContent = '訂單處理中...';
 
-    setTimeout(() => {
-        // Success
-        alert('🎉 訂單已成功送出！\n\n感謝您的購買，我們將盡快為您出貨。');
-
-        // Clear Cart
-        localStorage.removeItem('cart');
-
-        // Redirect to Home
-        window.location.href = 'index.html';
-    }, 1500);
+    // Send to Firestore
+    createOrder(user.uid, orderData)
+        .then((orderId) => {
+            alert(`🎉 訂單已成功送出！\n\n訂單編號：${orderId}\n感謝您的購買，我們將盡快為您出貨。`);
+            localStorage.removeItem('cart');
+            window.location.href = 'index.html'; // Or redirect to profile order history
+        })
+        .catch((error) => {
+            console.error("Order failed", error);
+            alert('訂單送出失敗，請稍後再試：' + error.message);
+            btn.disabled = false;
+            btn.textContent = '確認結帳';
+        });
 }

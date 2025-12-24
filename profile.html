@@ -7,6 +7,19 @@
     <title>會員中心 - BlueCore 3C 數位商城</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <style>
+        @media (max-width: 768px) {
+            .auth-content-wrapper {
+                flex-direction: column !important;
+                align-items: center !important;
+            }
+
+            .auth-box {
+                width: 100%;
+                margin-bottom: 20px !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -21,48 +34,56 @@
         </div>
     </header>
 
-    <div class="auth-container">
-        <div class="auth-box profile-box">
-            <h2><i class="fa-solid fa-id-card"></i> 會員資料修改</h2>
-            <form id="profileForm">
-                <div class="form-group">
-                    <label for="email">電子信箱 (無法修改)</label>
-                    <input type="email" id="email" disabled style="background-color: #f5f5f5; cursor: not-allowed;">
+    <div class="auth-container"
+        style="flex-direction: column; justify-content: flex-start; padding-top: 40px; height: auto;">
+
+        <!-- Top Section: Profile & Coupons -->
+        <div class="auth-content-wrapper"
+            style="display: flex; gap: 40px; align-items: flex-start; width: 100%; max-width: 1000px; margin-bottom: 30px;">
+            <div class="auth-box profile-box" style="flex: 1; margin: 0; max-width: none;">
+                <h2><i class="fa-solid fa-id-card"></i> 會員資料修改</h2>
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="email">電子信箱 (無法修改)</label>
+                        <input type="email" id="email" disabled style="background-color: #f5f5f5; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label for="displayName">顯示名稱</label>
+                        <input type="text" id="displayName" placeholder="請輸入您的暱稱" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">新密碼 (若不修改請留空)</label>
+                        <input type="password" id="newPassword" placeholder="輸入新密碼">
+                    </div>
+                    <button type="submit" class="auth-btn">儲存修改</button>
+                </form>
+                <div class="auth-footer">
+                    <a href="index.html">返回首頁</a>
                 </div>
-                <div class="form-group">
-                    <label for="displayName">顯示名稱</label>
-                    <input type="text" id="displayName" placeholder="請輸入您的暱稱" required>
+            </div>
+
+            <div class="auth-box coupon-box" style="flex: 1; margin: 0; max-width: none;">
+                <h2><i class="fa-solid fa-ticket"></i> 我的折價券</h2>
+                <div class="coupon-list">
+                    <div class="coupon-item"
+                        style="border: 2px dashed var(--primary-color); padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff5f5; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: bold; color: var(--primary-color); font-size: 1.1rem;">WELCOME100
+                            </div>
+                            <div style="color: #666; font-size: 0.9rem;">新會員見面禮 - 折抵 NT$100</div>
+                        </div>
+                        <button onclick="copyCoupon('WELCOME100')"
+                            style="background: white; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">複製</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="newPassword">新密碼 (若不修改請留空)</label>
-                    <input type="password" id="newPassword" placeholder="輸入新密碼">
-                </div>
-                <button type="submit" class="auth-btn">儲存修改</button>
-            </form>
-            <div class="auth-footer">
-                <a href="index.html">返回首頁</a>
             </div>
         </div>
 
-        <div class="auth-box coupon-box" style="margin-top: 20px;">
-            <h2><i class="fa-solid fa-ticket"></i> 我的折價券</h2>
-            <div class="coupon-list">
-                <div class="coupon-item"
-                    style="border: 2px dashed var(--primary-color); padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff5f5; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-weight: bold; color: var(--primary-color); font-size: 1.1rem;">WELCOME100</div>
-                        <div style="color: #666; font-size: 0.9rem;">新會員見面禮 - 折抵 NT$100</div>
-                    </div>
-                    <button onclick="copyCoupon('WELCOME100')"
-                        style="background: white; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">複製</button>
-                </div>
-                <!-- 
-                <div class="coupon-item"
-                    style="border: 2px dashed #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #f9f9f9; opacity: 0.7;">
-                    <div style="font-weight: bold; color: #666; font-size: 1.1rem;">VIP2024 (已過期)</div>
-                    <div style="color: #999; font-size: 0.9rem;">VIP 專屬優惠 - 9折</div>
-                </div>
-                -->
+        <!-- Bottom Section: Order History -->
+        <div class="auth-box order-history-box" style="width: 100%; max-width: 1000px; margin: 0; text-align: left;">
+            <h2><i class="fa-solid fa-clock-rotate-left"></i> 歷史訂單</h2>
+            <div id="order-list" style="margin-top: 20px;">
+                <p style="text-align: center; color: #999;">載入中...</p>
             </div>
         </div>
 
@@ -108,6 +129,7 @@
     </footer>
 
     <script type="module" src="auth.js"></script>
+    <script type="module" src="profile.js"></script>
 </body>
 
 </html>
