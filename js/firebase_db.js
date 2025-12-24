@@ -180,7 +180,7 @@ const SUPER_ADMINS = [
     'herecitw@gmail.com'
 ];
 
-export async function setUserRole(email, role) {
+export async function setUserRole(uid, role, email = '') {
     const validRoles = ['admin', 'seller', 'customer'];
     if (!validRoles.includes(role)) {
         throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`);
@@ -188,12 +188,14 @@ export async function setUserRole(email, role) {
 
     try {
         const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        await setDoc(doc(db, "user_roles", email), {
-            email: email,
+        // Store in 'user_roles' using UID as key
+        await setDoc(doc(db, "user_roles", uid), {
+            uid: uid,
+            email: email, // Optional: store email for reference
             role: role,
             updatedAt: serverTimestamp()
         });
-        console.log(`Success: Role '${role}' assigned to ${email}.`);
+        console.log(`Success: Role '${role}' assigned to ${uid} (${email}).`);
         return true;
     } catch (e) {
         console.error("Error setting role:", e);
@@ -201,25 +203,34 @@ export async function setUserRole(email, role) {
     }
 }
 
-export async function getUserRole(email) {
-    // 0. Check Super Admin Whitelist
-    if (SUPER_ADMINS.includes(email)) {
+export async function getUserRole(uid, email = null) {
+    // 0. Check Super Admin Whitelist (using Email)
+    if (email && SUPER_ADMINS.includes(email)) {
         return 'admin';
     }
 
     try {
         const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
 
-        // 1. Check new 'user_roles' collection
-        const roleSnap = await getDoc(doc(db, "user_roles", email));
+        // 1. Check new 'user_roles' collection by UID
+        const roleSnap = await getDoc(doc(db, "user_roles", uid));
         if (roleSnap.exists()) {
             return roleSnap.data().role;
         }
 
-        // 2. Backward Compatibility: Check old 'allowed_sellers'
-        const oldSnap = await getDoc(doc(db, "allowed_sellers", email));
-        if (oldSnap.exists()) {
-            return 'seller'; // Default old records to seller
+        // 2. Backward Compatibility: Check old 'allowed_sellers' (Email-based)
+        // Only if email is provided
+        if (email) {
+            const oldSnap = await getDoc(doc(db, "allowed_sellers", email));
+            if (oldSnap.exists()) {
+                return 'seller';
+            }
+
+            // Also check if there was a legacy role saved by email in user_roles
+            const oldEmailSnap = await getDoc(doc(db, "user_roles", email));
+            if (oldEmailSnap.exists()) {
+                return oldEmailSnap.data().role;
+            }
         }
 
         return 'customer'; // Default role

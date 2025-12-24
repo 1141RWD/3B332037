@@ -388,7 +388,7 @@ async function initUserManagement() {
     if (!user) return;
 
     // Double check role
-    const role = await getUserRole(user.email);
+    const role = await getUserRole(user.uid, user.email);
     // Also allow superuser hardcode
     if (role === 'admin') {
         section.style.display = 'block';
@@ -408,7 +408,10 @@ async function loadUserList() {
 
     list.innerHTML = users.map(u => `
         <tr>
-            <td>${u.email}</td>
+            <td title="${u.uid}" style="font-family:monospace; font-size:0.9em;">
+                ${u.uid.substring(0, 8)}...
+                <div style="font-size:0.8em; color:#888;">${u.email || '(No Email)'}</div>
+            </td>
             <td>
                 <span style="
                     padding: 4px 8px; border-radius: 4px; font-size: 0.9em;
@@ -420,7 +423,7 @@ async function loadUserList() {
             </td>
             <td>${u.updatedAt ? new Date(u.updatedAt.seconds * 1000).toLocaleDateString() : '-'}</td>
             <td>
-                <button class="action-btn edit-btn" onclick="fillUserForm('${u.email}', '${u.role}')">
+                <button class="action-btn edit-btn" onclick="fillUserForm('${u.uid}', '${u.role}')">
                     <i class="fa-solid fa-pen"></i> 編輯
                 </button>
             </td>
@@ -428,8 +431,8 @@ async function loadUserList() {
     `).join('');
 }
 
-window.fillUserForm = function (email, role) {
-    document.getElementById('u-email').value = email;
+window.fillUserForm = function (uid, role) {
+    document.getElementById('u-email').value = uid; // Re-using email input for UID
     document.getElementById('u-role').value = role;
 };
 
@@ -438,14 +441,14 @@ const userForm = document.getElementById('userRoleForm');
 if (userForm) {
     userForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('u-email').value.trim();
+        const uid = document.getElementById('u-email').value.trim(); // Uses same inputs ID
         const role = document.getElementById('u-role').value;
 
-        if (!email) return;
+        if (!uid) return;
 
         try {
-            await setUserRole(email, role);
-            showToast(`權限設定成功: ${email} -> ${role}`, 'success');
+            await setUserRole(uid, role, 'Admin-Set'); // We often don't know the email here
+            showToast(`權限設定成功: ${uid} -> ${role}`, 'success');
             loadUserList(); // Refresh
             userForm.reset();
         } catch (err) {

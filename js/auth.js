@@ -236,7 +236,7 @@ onAuthStateChanged(auth, async (user) => {
             let roleDisplay = '';
             try {
                 const { getUserRole } = await import('./firebase_db.js');
-                const role = await getUserRole(user.email);
+                const role = await getUserRole(user.uid, user.email);
                 const roleMap = { 'admin': '管理員', 'seller': '賣家', 'customer': '會員' };
                 roleDisplay = ` <span class="badge-role" style="background:#eee; padding:2px 6px; border-radius:4px; font-size:0.8em; color:#555;">${roleMap[role] || role}</span>`;
             } catch (e) { console.error(e); }
