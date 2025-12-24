@@ -243,15 +243,10 @@ export async function getUserRole(uid, email = null) {
 export async function getAllUserRoles() {
     const users = [];
     try {
-        console.log("getAllUserRoles: Start (Dummy Mode)");
-        // Force return dummy data to test UI flow
-        return [
-            { uid: 'test-uid-123', email: 'debug@test.com', role: 'admin', updatedAt: { seconds: Date.now() / 1000 } }
-        ];
+        console.log("getAllUserRoles: Start (Real Mode)");
 
-        /*
         // Create a timeout promise
-        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Query Timed Out")), 5000));
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Query Timed Out (5s)")), 5000));
 
         const q = query(collection(db, "user_roles"));
         console.log("getAllUserRoles: Executing query...");
@@ -264,13 +259,13 @@ export async function getAllUserRoles() {
 
         console.log("getAllUserRoles: Got snapshot, size=" + querySnapshot.size);
         querySnapshot.forEach((doc) => {
-            users.push(doc.data());
+            // Merge doc.id so we have a fallback if uid is missing
+            users.push({ id: doc.id, ...doc.data() });
         });
         return users;
-        */
     } catch (e) {
         console.error("Error getting users:", e);
-        return [];
+        return { error: e.message || "Unknown Error" }; // Return error info to UI
     }
 }
 

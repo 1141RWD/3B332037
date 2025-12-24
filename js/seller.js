@@ -1,4 +1,4 @@
-import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js?v=5';
+import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js?v=8';
 
 import { onAuthStateChanged, getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -465,18 +465,30 @@ async function loadSellerRequests() {
 
 async function loadUserList() {
     const list = document.getElementById('user-role-list');
-    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中 (v5-DummyMode)...</td></tr>';
+    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中 (v8-FixCrash)...</td></tr>';
 
     const users = await getAllUserRoles();
+
+    if (users.error) {
+        list.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">錯誤: ${users.error}</td></tr>`;
+        return;
+    }
+
     if (users.length === 0) {
         list.innerHTML = '<tr><td colspan="4" style="text-align:center">目前沒有權限資料</td></tr>';
         return;
     }
 
-    list.innerHTML = users.map(u => `
+    // Safe rendering loop
+    list.innerHTML = users.map(u => {
+        // Fallback: If UID doesn't exist, use ID (doc key), or Email, or 'N/A'
+        const displayId = u.uid || u.id || u.email || 'N/A';
+        const shortId = (displayId && displayId.length > 8) ? displayId.substring(0, 8) + '...' : displayId;
+
+        return `
         <tr>
-            <td title="${u.uid}" style="font-family:monospace; font-size:0.9em;">
-                ${u.uid.substring(0, 8)}...
+            <td title="${displayId}" style="font-family:monospace; font-size:0.9em;">
+                ${shortId}
                 <div style="font-size:0.8em; color:#888;">${u.email || '(No Email)'}</div>
             </td>
             <td>
@@ -485,22 +497,22 @@ async function loadUserList() {
                     background: ${u.role === 'admin' ? '#fee2e2' : u.role === 'seller' ? '#e0f2fe' : '#f1f5f9'};
                     color: ${u.role === 'admin' ? '#ef4444' : u.role === 'seller' ? '#0284c7' : '#64748b'};
                 ">
-                    ${u.role.toUpperCase()}
+                    ${(u.role || 'USER').toUpperCase()}
                 </span>
             </td>
             <td>${u.updatedAt ? new Date(u.updatedAt.seconds * 1000).toLocaleDateString() : '-'}</td>
             <td>
-                <button class="action-btn edit-btn" onclick="fillUserForm('${u.uid}', '${u.role}')">
+                <button class="action-btn edit-btn" onclick="fillUserForm('${displayId}', '${u.role}')">
                     <i class="fa-solid fa-pen"></i> 編輯
                 </button>
             </td>
-        </tr>
-    `).join('');
+        </tr>`;
+    }).join('');
 }
 
 window.fillUserForm = function (uid, role) {
-    document.getElementById('u-email').value = uid; // Re-using email input for UID
-    document.getElementById('u-role').value = role;
+    document.getElementById('u-email').value = uid; // This input is used for lookup
+    document.getElementById('u-role').value = role || 'user';
 };
 
 // Handle Form Submit
