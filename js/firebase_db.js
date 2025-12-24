@@ -243,7 +243,13 @@ export async function getUserRole(uid, email = null) {
 export async function getAllUserRoles() {
     const users = [];
     try {
-        console.log("getAllUserRoles: Start");
+        console.log("getAllUserRoles: Start (Dummy Mode)");
+        // Force return dummy data to test UI flow
+        return [
+            { uid: 'test-uid-123', email: 'debug@test.com', role: 'admin', updatedAt: { seconds: Date.now() / 1000 } }
+        ];
+
+        /*
         // Create a timeout promise
         const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Query Timed Out")), 5000));
 
@@ -261,6 +267,7 @@ export async function getAllUserRoles() {
             users.push(doc.data());
         });
         return users;
+        */
     } catch (e) {
         console.error("Error getting users:", e);
         return [];

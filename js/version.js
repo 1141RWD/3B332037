@@ -1,1 +1,1 @@
-export const APP_VERSION = 'Build 6d2a393';
+export const APP_VERSION = 'Build d1602e0';
