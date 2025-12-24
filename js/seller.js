@@ -1,4 +1,4 @@
-import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js?v=8';
+import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js?v=9';
 
 import { onAuthStateChanged, getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -465,7 +465,7 @@ async function loadSellerRequests() {
 
 async function loadUserList() {
     const list = document.getElementById('user-role-list');
-    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中 (v8-FixCrash)...</td></tr>';
+    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中...</td></tr>';
 
     const users = await getAllUserRoles();
 
@@ -533,7 +533,6 @@ if (userForm) {
         } catch (err) {
             console.error(err);
             showToast('設定失敗: ' + err.message, 'error');
-            alert("如果您遇到 'Missing permissions' 錯誤，請記得去 Firebase Console 修改 Rules！");
         }
     });
 }
