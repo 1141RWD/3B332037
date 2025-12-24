@@ -53,20 +53,71 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             authContentWrapper.appendChild(serviceBox);
 
+            // Inject Custom Modal for Seller Application
+            const modalHtml = `
+                <div id="seller-modal" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.5);">
+                    <div class="modal-content" style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:90%; max-width:500px; border-radius:8px; position:relative;">
+                        <span class="close-seller-modal" style="color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer;">&times;</span>
+                        <h2 style="margin-bottom:15px; color:var(--primary-color);">申請成為賣家</h2>
+                        <p style="margin-bottom:15px; color:#666;">請簡述您的申請理由 (例如：我有二手 3C 產品想要販售)：</p>
+                        <textarea id="seller-reason" rows="4" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; margin-bottom:20px; resize:vertical;" placeholder="請輸入申請理由..."></textarea>
+                        <div style="text-align:right;">
+                            <button id="btn-cancel-apply" style="background:#ccc; color:#333; padding:8px 20px; border:none; border-radius:4px; cursor:pointer; margin-right:10px;">取消</button>
+                            <button id="btn-submit-apply" style="background:var(--primary-color); color:white; padding:8px 20px; border:none; border-radius:4px; cursor:pointer;">提交申請</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
             // Bind Apply Event
             setTimeout(() => {
                 const applyBtn = document.getElementById('btn-apply-seller');
+                const modal = document.getElementById('seller-modal');
+                const closeSpan = document.querySelector('.close-seller-modal');
+                const cancelBtn = document.getElementById('btn-cancel-apply');
+                const submitBtn = document.getElementById('btn-submit-apply');
+                const reasonInput = document.getElementById('seller-reason');
+
+                const closeModal = () => {
+                    if (modal) modal.style.display = 'none';
+                    if (reasonInput) reasonInput.value = '';
+                };
+
                 if (applyBtn) {
-                    applyBtn.addEventListener('click', async () => {
-                        const reason = prompt("請輸入您的申請理由 (例如: 我有許多二手 3C 產品想販售)：");
-                        if (reason) {
-                            try {
-                                const { submitSellerRequest } = await import('./firebase_db.js');
-                                await submitSellerRequest(user, reason);
-                                alert('申請已送出！管理員審核通過後，您下次登入即可看到賣家中心。');
-                            } catch (e) {
-                                alert('申請失敗: ' + e.message);
-                            }
+                    applyBtn.addEventListener('click', () => {
+                        if (modal) modal.style.display = 'block';
+                    });
+                }
+
+                if (closeSpan) closeSpan.onclick = closeModal;
+                if (cancelBtn) cancelBtn.onclick = closeModal;
+
+                window.onclick = (event) => {
+                    if (event.target == modal) closeModal();
+                };
+
+                if (submitBtn) {
+                    submitBtn.addEventListener('click', async () => {
+                        const reason = reasonInput.value.trim();
+                        if (!reason) {
+                            alert('請輸入申請理由'); // Using prompt fallback for validation msg or simple alert
+                            return;
+                        }
+
+                        submitBtn.textContent = '提交中...';
+                        submitBtn.disabled = true;
+
+                        try {
+                            const { submitSellerRequest } = await import('./firebase_db.js');
+                            await submitSellerRequest(user, reason);
+                            alert('申請已送出！管理員審核通過後，您下次登入即可看到賣家中心。');
+                            closeModal();
+                        } catch (e) {
+                            alert('申請失敗: ' + e.message);
+                        } finally {
+                            submitBtn.textContent = '提交申請';
+                            submitBtn.disabled = false;
                         }
                     });
                 }
