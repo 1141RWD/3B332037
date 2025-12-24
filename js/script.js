@@ -1,4 +1,5 @@
-// Product data loaded from products.js
+// Product data loaded from Firestoe
+import { getProducts } from './firebase_db.js';
 
 // DOM Elements
 const productGrid = document.querySelector('.product-grid');
@@ -9,7 +10,7 @@ const cartCountElement = document.querySelector('.cart-count');
 const cartTotalElement = document.querySelector('.total-price span');
 
 // State
-// State
+let products = []; // Use local state
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 
 function saveCart() {
@@ -18,7 +19,8 @@ function saveCart() {
 
 // Functions
 function formatCurrency(amount) {
-    return 'NT$' + amount.toLocaleString();
+    if (amount === undefined || amount === null) return 'NT$0';
+    return 'NT$' + Number(amount).toLocaleString();
 }
 
 // Render Products
@@ -37,15 +39,15 @@ function renderProducts(filterCategory = 'all') {
 
     productGrid.innerHTML = filteredProducts.map(product => `
         <div class="product-card">
-            <img src="${product.image}" alt="${product.title}" class="product-image" onclick="openProductModal(${product.id})" style="cursor: pointer">
+            <img src="${product.image}" alt="${product.title}" class="product-image" onclick="openProductModal('${product.id}')" style="cursor: pointer">
             <div class="product-info">
-                <h3 class="product-title" onclick="openProductModal(${product.id})" style="cursor: pointer">${product.title}</h3>
+                <h3 class="product-title" onclick="openProductModal('${product.id}')" style="cursor: pointer">${product.title}</h3>
                 <div class="product-price">${formatCurrency(product.price)}</div>
                 <div class="product-meta">
-                    <span>Sold ${product.sold}</span>
+                    <span>Sold ${product.soldDisplay || product.sold}</span>
                     <span>📍 TW</span>
                 </div>
-                <button class="add-to-cart-btn" onclick="openProductModal(${product.id})" style="
+                <button class="add-to-cart-btn" onclick="openProductModal('${product.id}')" style="
                     margin-top: 15px;
                     width: 100%;
                     padding: 10px;
@@ -69,13 +71,33 @@ function renderProducts(filterCategory = 'all') {
     `).join('');
 }
 
+// Initial Fetch
+async function init() {
+    try {
+        products = await getProducts();
+        renderProducts();
+    } catch (e) {
+        console.error("Failed to load products", e);
+        if (productGrid) {
+            productGrid.innerHTML = `
+                <div class="error" style="text-align: center; padding: 20px;">
+                    <p>商品載入失敗</p>
+                    <p style="color: red; font-size: 0.9em;">${e.message}</p>
+                    <p style="color: gray; font-size: 0.8em;">Code: ${e.code || 'unknown'}</p>
+                </div>
+            `;
+        }
+    }
+}
+
+
 // Modal State
 let currentModalProduct = null;
 let selectedOptions = {};
 
 // Modal Functions
 function openProductModal(productId) {
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id == productId);
     if (!product) return;
 
     currentModalProduct = product;
@@ -189,57 +211,75 @@ function updateModalPrice() {
 }
 
 function addToCartFromModal() {
-    if (!currentModalProduct) return;
+    try {
+        if (!currentModalProduct) {
+            console.warn("No current modal product");
+            return;
+        }
 
-    // Calculate Dynamic Price
-    let finalPrice = currentModalProduct.price;
-    const modifiers = currentModalProduct.options ? currentModalProduct.options.priceModifiers : null;
+        // Calculate Dynamic Price
+        let finalPrice = currentModalProduct.price;
+        const modifiers = currentModalProduct.options ? currentModalProduct.options.priceModifiers : null;
 
-    if (modifiers) {
-        Object.values(selectedOptions).forEach(selectedValue => {
-            if (modifiers[selectedValue]) {
-                finalPrice += modifiers[selectedValue];
-            }
-        });
+        if (modifiers) {
+            Object.values(selectedOptions).forEach(selectedValue => {
+                if (modifiers[selectedValue]) {
+                    finalPrice += modifiers[selectedValue];
+                }
+            });
+        }
+
+        // Create a variant title
+        let variantTitle = currentModalProduct.title;
+        const variants = [];
+        if (selectedOptions.color) variants.push(selectedOptions.color);
+        if (selectedOptions.spec) variants.push(selectedOptions.spec);
+
+        if (variants.length > 0) {
+            variantTitle += ` (${variants.join(' - ')})`;
+        }
+
+        // Unique ID for cart item based on variants
+        // If variants empty, it's just ID + empty string join = ID-
+        const suffix = variants.length > 0 ? variants.join('-') : 'default';
+        const cartItemId = `${currentModalProduct.id}-${suffix}`;
+
+        const cartItem = {
+            ...currentModalProduct,
+            id: cartItemId, // Override ID for cart distinctness
+            originalId: currentModalProduct.id,
+            title: variantTitle,
+            price: finalPrice, // Use dynamic price
+            quantity: 1
+        };
+
+        performAddToCart(cartItem);
+
+        // Close Modal
+        document.getElementById('product-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+
+        // Show Success Toast
+        if (typeof showToast === 'function') {
+            showToast('已加入購物車', 'success');
+        }
+
+        // Trigger Fly Animation from Modal Image (optional, requires finding the element)
+        // Just pulse cart for now
+        const cartIcon = document.querySelector('.cart-icon');
+        if (cartIcon) {
+            cartIcon.style.transform = 'scale(1.2)';
+            setTimeout(() => cartIcon.style.transform = 'scale(1)', 200);
+        }
+
+    } catch (e) {
+        console.error("Add to Cart Error:", e);
+        if (typeof showToast === 'function') {
+            showToast('加入購物車失敗: ' + e.message, 'error');
+        } else {
+            alert('加入購物車失敗: ' + e.message);
+        }
     }
-
-    // Validate if options are selected (primitive check)
-    // For now, we assume auto-select works or user selects. 
-    // You could force check here.
-
-    // Create a variant title
-    let variantTitle = currentModalProduct.title;
-    const variants = [];
-    if (selectedOptions.color) variants.push(selectedOptions.color);
-    if (selectedOptions.spec) variants.push(selectedOptions.spec);
-
-    if (variants.length > 0) {
-        variantTitle += ` (${variants.join(' - ')})`;
-    }
-
-    // Unique ID for cart item based on variants
-    const cartItemId = `${currentModalProduct.id}-${variants.join('-')}`;
-
-    const cartItem = {
-        ...currentModalProduct,
-        id: cartItemId, // Override ID for cart distinctness
-        originalId: currentModalProduct.id,
-        title: variantTitle,
-        price: finalPrice, // Use dynamic price
-        quantity: 1
-    };
-
-    performAddToCart(cartItem);
-
-    // Close Modal
-    document.getElementById('product-modal').style.display = 'none';
-    document.body.style.overflow = 'auto';
-
-    // Trigger Fly Animation from Modal Image (optional, requires finding the element)
-    // Just pulse cart for now
-    const cartIcon = document.querySelector('.cart-icon');
-    cartIcon.style.transform = 'scale(1.2)';
-    setTimeout(() => cartIcon.style.transform = 'scale(1)', 200);
 }
 
 // Close Modal Logic
@@ -264,7 +304,7 @@ window.addToCartFromModal = addToCartFromModal;
 
 // Cart Logic
 function addToCart(productId, event) {
-    const product = products.find(p => p.id === productId);
+    const product = products.find(p => p.id == productId);
     if (!product) return;
 
     // 1. Add to cart immediately (so logic never fails)
@@ -331,15 +371,21 @@ function runFlyAnimation(sourceImg) {
 }
 
 function performAddToCart(product) {
-    const existingItem = cart.find(item => item.id === product.id);
-    if (existingItem) {
-        existingItem.quantity += 1;
-    } else {
-        cart.push({ ...product, quantity: 1 });
-    }
+    try {
+        if (!cart) cart = []; // Safety check
+        const existingItem = cart.find(item => item.id == product.id);
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({ ...product, quantity: 1 });
+        }
 
-    saveCart();
-    updateCartUI();
+        saveCart();
+        updateCartUI();
+    } catch (e) {
+        console.error("Perform Add To Cart Error: ", e);
+        throw e; // Re-throw to be caught by caller
+    }
 }
 
 function updateCartUI() {
@@ -395,7 +441,7 @@ window.addToCart = addToCart;
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     // Initial Render
-    renderProducts();
+    init();
 
     // Category Toggle
     const categoryToggle = document.getElementById('categories-toggle');
@@ -543,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span>Sold ${product.sold}</span>
                             <span>📍 TW</span>
                         </div>
-                        <button class="add-to-cart-btn" onclick="addToCart(${product.id}, event)" style="
+                        <button class="add-to-cart-btn" onclick="addToCart('${product.id}', event)" style="
                             margin-top: 15px;
                             width: 100%;
                             padding: 10px;

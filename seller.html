@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>賣家中心 | BlueCore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .seller-container {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .product-table th,
+        .product-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-table th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .product-thumb {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-right: 5px;
+        }
+
+        .edit-btn {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .delete-btn {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        /* Modal specific for seller */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cecece;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fa-solid fa-microchip"></i> BlueCore 賣家中心
+            </a>
+            <div class="user-links">
+                <a href="index.html">返回首頁</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="seller-container">
+        <div class="dashboard-header">
+            <h1>商品管理</h1>
+            <div class="header-actions">
+                <a href="index.html" class="btn-secondary"
+                    style="text-decoration: none; display: inline-block; margin-right: 10px;">
+                    <i class="fa-solid fa-shop"></i> 回賣場首頁
+                </a>
+                <button class="btn-primary" onclick="openProductForm()">
+                    <i class="fa-solid fa-plus"></i> 新增商品
+                </button>
+            </div>
+        </div>
+
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th width="80">圖片</th>
+                    <th>商品名稱</th>
+                    <th>價格</th>
+                    <th>類別</th>
+                    <th>銷量</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="product-list">
+                <tr>
+                    <td colspan="6" style="text-align: center;">載入中...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="seller-container" style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px;">
+        <h3 style="color: #64748b;">進階工具</h3>
+        <p style="color: #94a3b8; font-size: 0.9em; margin-bottom: 10px;">如果您之前的商品使用的是專案資料夾裡的圖片
+            (images/...)，按此按鈕可以將它們轉換並存入資料庫。</p>
+        <button class="btn-secondary" onclick="migrateImagesToDB()" id="btn-migrate">
+            <i class="fa-solid fa-cloud-arrow-up"></i> 轉換所有舊圖片到資料庫
+        </button>
+        <div id="migration-log"
+            style="margin-top: 10px; font-size: 0.85em; color: #475569; max-height: 100px; overflow-y: auto;"></div>
+    </div>
+
+    <!-- Edit/Add Product Modal -->
+    <div id="product-form-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeProductForm()">&times;</span>
+            <div class="modal-header">
+                <h2 id="form-title">新增商品</h2>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+
+                    <div class="form-group">
+                        <label>商品名稱</label>
+                        <input type="text" id="p-title" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>圖片連結 (URL)</label>
+                        <input type="text" id="p-image" placeholder="https://..." required>
+                        <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
+                            或上傳圖片: <input type="file" id="p-image-file" accept="image/*">
+                        </div>
+                        <div style="margin-top: 10px; text-align: center;">
+                            <img id="p-image-preview" src="" alt="預覽圖"
+                                style="max-width: 100%; max-height: 200px; display: none; border-radius: 6px; border: 1px solid #ddd;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>價格 (NT$)</label>
+                            <input type="number" id="p-price" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>類別</label>
+                            <select id="p-category">
+                                <option value="mobile">手機平板</option>
+                                <option value="computer">電腦筆電</option>
+                                <option value="fashion">流行服飾</option>
+                                <option value="beauty">美妝保養</option>
+                                <option value="gaming">遊戲電玩</option>
+                                <option value="lifestyle">居家生活</option>
+                                <option value="food">美食保健</option>
+                                <option value="auto">汽機車百貨</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>已售出數量 (顯示用)</label>
+                        <input type="number" id="p-sold" value="0">
+                    </div>
+
+                    <div style="background: #f8fafc; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: #475569;">商品規格設定 (用逗號隔開)</h4>
+                        <div class="form-group">
+                            <label>顏色選項 (例如: 紅色, 藍色, 黑色)</label>
+                            <input type="text" id="p-colors" placeholder="輸入顏色...">
+                        </div>
+                        <div class="form-group">
+                            <label>規格選項 (例如: S, M, L 或 256GB, 512GB)</label>
+                            <input type="text" id="p-specs" placeholder="輸入規格...">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer" style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn-secondary" onclick="closeProductForm()">取消</button>
+                        <button type="submit" class="btn-primary">儲存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/ui.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/seller.js"></script>
+</body>
+
+</html>
