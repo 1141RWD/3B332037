@@ -82,6 +82,14 @@ const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // reCAPTCHA Check
+        const recaptchaResponse = grecaptcha.getResponse();
+        if (recaptchaResponse.length === 0) {
+            alert('請勾選「我不是機器人」！');
+            return;
+        }
+
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
