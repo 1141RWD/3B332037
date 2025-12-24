@@ -14,7 +14,7 @@ onAuthStateChanged(auth, async (user) => {
         console.log("Checking permission for:", userEmail);
 
         // Check Role (Now includes whitelist check internally)
-        const role = await getUserRole(userEmail);
+        const role = await getUserRole(user.uid, user.email);
         console.log("User Role:", role);
 
         if (role === 'admin' || role === 'seller') {
