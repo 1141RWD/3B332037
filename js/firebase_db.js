@@ -243,7 +243,7 @@ export async function getUserRole(uid, email = null) {
 export async function getAllUserRoles() {
     const users = [];
     try {
-        const q = query(collection(db, "user_roles"), orderBy("updatedAt", "desc"));
+        const q = query(collection(db, "user_roles"));
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
             users.push(doc.data());
@@ -285,8 +285,7 @@ export async function getSellerRequests() {
     try {
         const q = query(
             collection(db, "seller_requests"),
-            where("status", "==", "pending"),
-            orderBy("createdAt", "desc")
+            where("status", "==", "pending")
         );
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
