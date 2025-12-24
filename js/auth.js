@@ -153,7 +153,7 @@ if (profileForm) {
                 roleInput.value = '載入中...';
                 try {
                     // Dynamic Import to avoid circular dependencies if any (though getUserRole is safe)
-                    const { getUserRole } = await import('./firebase_db.js');
+                    const { getUserRole } = await import('./firebase_db.js?v=' + Date.now());
                     const role = await getUserRole(user.uid, user.email);
 
                     // Map role to Chinese

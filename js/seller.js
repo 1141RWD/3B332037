@@ -1,4 +1,4 @@
-import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js';
+import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js?v=1';
 
 import { onAuthStateChanged, getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 

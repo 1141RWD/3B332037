@@ -1,5 +1,5 @@
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getUserOrders, cancelOrder, getProducts, hasUserUsedCoupon, validCoupons } from './firebase_db.js';
+import { getUserOrders, cancelOrder, getProducts, hasUserUsedCoupon, validCoupons } from './firebase_db.js?v=1';
 
 const auth = getAuth();
 let currentUserOrders = []; // Store for modal access
