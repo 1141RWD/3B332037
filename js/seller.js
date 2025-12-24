@@ -1,22 +1,40 @@
-import { db, getProducts, addProduct, updateProduct, deleteProduct } from './firebase_db.js';
+import { db, getProducts, addProduct, updateProduct, deleteProduct, getUserRole, setUserRole, getAllUserRoles } from './firebase_db.js';
+
 import { onAuthStateChanged, getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// Make admin helper available in console
+window.setRole = setUserRole;
 
 const auth = getAuth();
 
 // 1. Auth Check
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        initDashboard();
+        const userEmail = user.email;
+        console.log("Checking permission for:", userEmail);
+
+        // Check Role (Now includes whitelist check internally)
+        const role = await getUserRole(userEmail);
+        console.log("User Role:", role);
+
+        if (role === 'admin' || role === 'seller') {
+            if (role === 'admin') {
+                const name = user.displayName || userEmail;
+                if (typeof showToast === 'function') showToast(`歡迎超級管理員 ${name}`, 'success');
+            }
+            initDashboard();
+        } else {
+            alert(`抱歉，您 (${userEmail}) 的身份是 'customer'，無權進入賣家中心。\n請聯繫管理員協助。`);
+            window.location.href = 'index.html';
+        }
     } else {
-        // Redirect to login if not authenticated
-        // window.location.href = 'login.html'; 
-        // For development, maybe we allow viewing? No, let's block strictly.
         window.location.href = 'login.html';
     }
 });
 
 async function initDashboard() {
     loadProducts();
+    initUserManagement();
 }
 
 // 2. Load & Render Products
@@ -36,7 +54,7 @@ async function loadProducts() {
         }
 
         listBody.innerHTML = products.map(p => `
-            <tr>
+    < tr >
                 <td><img src="${p.image}" class="product-thumb" onerror="this.src='https://via.placeholder.com/60'"></td>
                 <td>${p.title}</td>
                 <td>NT$${p.price.toLocaleString()}</td>
@@ -46,8 +64,8 @@ async function loadProducts() {
                     <button class="action-btn edit-btn" onclick="editProduct('${p.id}')"><i class="fa-solid fa-pen"></i></button>
                     <button class="action-btn delete-btn" onclick="removeProduct('${p.id}')"><i class="fa-solid fa-trash"></i></button>
                 </td>
-            </tr>
-        `).join('');
+            </tr >
+    `).join('');
 
         // Cache products for editing
         window.currentProducts = products;
@@ -285,7 +303,7 @@ window.migrateImagesToDB = async function () {
         for (const p of products) {
             // Check if it's a local path (simple check)
             if (p.image && !p.image.startsWith('data:') && !p.image.startsWith('http') && (p.image.includes('images/') || !p.image.includes('/'))) {
-                log.innerHTML += `<div>正在處理: ${p.title} (${p.image})...</div>`;
+                log.innerHTML += `< div > 正在處理: ${p.title} (${p.image})...</div > `;
 
                 try {
                     // Fetch the image
@@ -298,16 +316,16 @@ window.migrateImagesToDB = async function () {
 
                     // Update DB
                     await updateProduct(p.id, { image: base64 });
-                    log.innerHTML += `<div style="color: green;"> -> 成功存入資料庫</div>`;
+                    log.innerHTML += `< div style = "color: green;" > -> 成功存入資料庫</div > `;
                     count++;
                 } catch (err) {
                     console.error(err);
-                    log.innerHTML += `<div style="color: red;"> -> 失敗: ${err.message}</div>`;
+                    log.innerHTML += `< div style = "color: red;" > -> 失敗: ${err.message}</div > `;
                 }
             }
         }
 
-        log.innerHTML += `<div style="font-weight: bold; margin-top: 5px;">處理完成！共更新了 ${count} 個商品。</div>`;
+        log.innerHTML += `< div style = "font-weight: bold; margin-top: 5px;" > 處理完成！共更新了 ${count} 個商品。</div > `;
         showToast(`遷移完成！更新了 ${count} 個圖片`, 'success');
 
         // Refresh list
@@ -362,3 +380,83 @@ function compressBlob(blob) {
 //        closeProductForm();
 //    }
 // };
+
+// 6. User Management Logic (Admin Only)
+async function initUserManagement() {
+    const section = document.getElementById('user-management-section');
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // Double check role
+    const role = await getUserRole(user.email);
+    // Also allow superuser hardcode
+    if (role === 'admin') {
+        section.style.display = 'block';
+        loadUserList();
+    }
+}
+
+async function loadUserList() {
+    const list = document.getElementById('user-role-list');
+    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中...</td></tr>';
+
+    const users = await getAllUserRoles();
+    if (users.length === 0) {
+        list.innerHTML = '<tr><td colspan="4" style="text-align:center">目前沒有權限資料</td></tr>';
+        return;
+    }
+
+    list.innerHTML = users.map(u => `
+        <tr>
+            <td>${u.email}</td>
+            <td>
+                <span style="
+                    padding: 4px 8px; border-radius: 4px; font-size: 0.9em;
+                    background: ${u.role === 'admin' ? '#fee2e2' : u.role === 'seller' ? '#e0f2fe' : '#f1f5f9'};
+                    color: ${u.role === 'admin' ? '#ef4444' : u.role === 'seller' ? '#0284c7' : '#64748b'};
+                ">
+                    ${u.role.toUpperCase()}
+                </span>
+            </td>
+            <td>${u.updatedAt ? new Date(u.updatedAt.seconds * 1000).toLocaleDateString() : '-'}</td>
+            <td>
+                <button class="action-btn edit-btn" onclick="fillUserForm('${u.email}', '${u.role}')">
+                    <i class="fa-solid fa-pen"></i> 編輯
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+window.fillUserForm = function (email, role) {
+    document.getElementById('u-email').value = email;
+    document.getElementById('u-role').value = role;
+};
+
+// Handle Form Submit
+const userForm = document.getElementById('userRoleForm');
+if (userForm) {
+    userForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('u-email').value.trim();
+        const role = document.getElementById('u-role').value;
+
+        if (!email) return;
+
+        try {
+            await setUserRole(email, role);
+            showToast(`權限設定成功: ${email} -> ${role}`, 'success');
+            loadUserList(); // Refresh
+            userForm.reset();
+        } catch (err) {
+            console.error(err);
+            showToast('設定失敗: ' + err.message, 'error');
+            alert("如果您遇到 'Missing permissions' 錯誤，請記得去 Firebase Console 修改 Rules！");
+        }
+    });
+}
+
+// Call initDashboard is already called, but we add initUserManagement there?
+// Let's hook it into initDashboard or call it if auth check passes.
+// I'll append a call to initUserManagement() inside initDashboard functions or manually call it.
+

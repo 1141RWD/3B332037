@@ -156,3 +156,77 @@ export async function deleteProduct(productId) {
         throw e;
     }
 }
+
+// 6. Role Management (Admin / Seller / Customer)
+const SUPER_ADMINS = [
+    'admin@bluecore.com',
+    'seller@test.com',
+    'herecitw@gmail.com'
+];
+
+export async function setUserRole(email, role) {
+    const validRoles = ['admin', 'seller', 'customer'];
+    if (!validRoles.includes(role)) {
+        throw new Error(`Invalid role. Must be one of: ${validRoles.join(', ')}`);
+    }
+
+    try {
+        const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        // Store in 'user_roles' collection (cleaner than allowed_sellers)
+        // migrating logic: allowed_sellers can remain for backward compat or we just switch.
+        // Let's use 'user_roles' for the new system.
+        await setDoc(doc(db, "user_roles", email), {
+            email: email,
+            role: role,
+            updatedAt: serverTimestamp()
+        });
+        console.log(`Success: Role '${role}' assigned to ${email}.`);
+        return true;
+    } catch (e) {
+        console.error("Error setting role:", e);
+        throw e;
+    }
+}
+
+export async function getUserRole(email) {
+    // 0. Check Super Admin Whitelist
+    if (SUPER_ADMINS.includes(email)) {
+        return 'admin';
+    }
+
+    try {
+        const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+
+        // 1. Check new 'user_roles' collection
+        const roleSnap = await getDoc(doc(db, "user_roles", email));
+        if (roleSnap.exists()) {
+            return roleSnap.data().role;
+        }
+
+        // 2. Backward Compatibility: Check old 'allowed_sellers'
+        const oldSnap = await getDoc(doc(db, "allowed_sellers", email));
+        if (oldSnap.exists()) {
+            return 'seller'; // Default old records to seller
+        }
+
+        return 'customer'; // Default role
+    } catch (e) {
+        console.error("Error checking role:", e);
+        return 'customer'; // Fail safe
+    }
+}
+
+export async function getAllUserRoles() {
+    const users = [];
+    try {
+        const q = query(collection(db, "user_roles"), orderBy("updatedAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            users.push(doc.data());
+        });
+        return users;
+    } catch (e) {
+        console.error("Error getting users:", e);
+        return [];
+    }
+}

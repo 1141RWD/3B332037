@@ -76,6 +76,14 @@ async function init() {
     try {
         products = await getProducts();
         renderProducts();
+
+        // Dynamic Hero Section
+        if (products.length > 0) {
+            // Pick the most expensive item as Hero
+            const heroProduct = [...products].sort((a, b) => b.price - a.price)[0];
+            updateHeroSection(heroProduct);
+        }
+
     } catch (e) {
         console.error("Failed to load products", e);
         if (productGrid) {
@@ -87,6 +95,32 @@ async function init() {
                 </div>
             `;
         }
+    }
+}
+
+function updateHeroSection(product) {
+    const heroTitle = document.querySelector('.hero-content h2');
+    const heroDesc = document.querySelector('.hero-content .description');
+    const heroPrice = document.querySelector('.hero-content .price-tag');
+    const heroImg = document.querySelector('.hero-image-container img');
+    const heroBtn = document.querySelector('.hero-btn');
+
+    if (heroTitle) heroTitle.textContent = product.title;
+    if (heroDesc) heroDesc.textContent = "旗艦推薦 | 極致效能與絕佳設計"; // Generic placeholder
+    if (heroPrice) heroPrice.textContent = formatCurrency(product.price) + ' 起';
+
+    if (heroImg) {
+        heroImg.src = product.image;
+        heroImg.alt = product.title;
+        // Fix for missing images breaking layout
+        heroImg.onerror = function () {
+            this.src = 'https://via.placeholder.com/500x500?text=Top+Product';
+        };
+    }
+
+    if (heroBtn) {
+        // Update click to open THIS product
+        heroBtn.onclick = () => openProductModal(product.id, new Event('click'));
     }
 }
 

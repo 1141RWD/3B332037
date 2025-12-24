@@ -109,7 +109,7 @@ function loadCartForCheckout() {
 
     container.innerHTML = cart.map(item => `
         <div class="checkout-item">
-            <img src="${item.image}" alt="${item.title}">
+            <img src="${item.image}" onerror="this.src='https://via.placeholder.com/60?text=No+Img'" alt="${item.title}">
             <div class="checkout-item-info">
                 <div class="checkout-item-title">${item.title}</div>
                 <div class="checkout-item-meta">數量: ${item.quantity}</div>

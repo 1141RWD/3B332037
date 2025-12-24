@@ -10,6 +10,9 @@ import {
     updatePassword,
     sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { setUserRole } from './firebase_db.js';
+
+window.grantRole = setUserRole;
 
 const firebaseConfig = {
     apiKey: "AIzaSyBOa0xVWz3Say6JA_RNmyuGbxFVk8I3P7s",
@@ -134,12 +137,39 @@ if (loginForm) {
 const profileForm = document.getElementById('profileForm');
 if (profileForm) {
     // Fill in current data when user loads
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
             const emailInput = document.getElementById('email');
             const nameInput = document.getElementById('displayName');
+            const uidInput = document.getElementById('uid');
+            const roleInput = document.getElementById('role');
+
             if (emailInput) emailInput.value = user.email;
             if (nameInput) nameInput.value = user.displayName || '';
+            if (uidInput) uidInput.value = user.uid;
+
+            // Fetch Role
+            if (roleInput) {
+                roleInput.value = '載入中...';
+                try {
+                    // Dynamic Import to avoid circular dependencies if any (though getUserRole is safe)
+                    const { getUserRole } = await import('./firebase_db.js');
+                    const role = await getUserRole(user.email);
+
+                    // Map role to Chinese
+                    const roleName = {
+                        'admin': '超級管理員 (Admin)',
+                        'seller': '賣家 (Seller)',
+                        'customer': '一般會員 (Customer)'
+                    }[role] || role;
+
+                    roleInput.value = roleName;
+                } catch (e) {
+                    console.error('Error fetching role:', e);
+                    roleInput.value = '未知';
+                }
+            }
+
         } else {
             // Not logged in, redirect
             window.location.href = 'login.html';
@@ -195,14 +225,26 @@ if (profileForm) {
 }
 
 // 4. Auth State Listener (Runs on every page)
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     const userLinks = document.querySelector('.user-links');
     if (userLinks) {
         if (user) {
             // Logged In
-            const displayName = user.displayName || user.email.split('@')[0];
+            const displayName = user.displayName || '會員';
+
+            // Fetch Role for Header
+            let roleDisplay = '';
+            try {
+                const { getUserRole } = await import('./firebase_db.js');
+                const role = await getUserRole(user.email);
+                const roleMap = { 'admin': '管理員', 'seller': '賣家', 'customer': '會員' };
+                roleDisplay = ` <span class="badge-role" style="background:#eee; padding:2px 6px; border-radius:4px; font-size:0.8em; color:#555;">${roleMap[role] || role}</span>`;
+            } catch (e) { console.error(e); }
+
             userLinks.innerHTML = `
-                <a href="profile.html" title="修改會員資料"><i class="fa-solid fa-user"></i> 歡迎回來! ${displayName}</a>
+                <a href="profile.html" title="修改會員資料">
+                    <i class="fa-solid fa-user"></i> 歡迎回來! ${displayName} ${roleDisplay}
+                </a>
                 <span>|</span>
                 <a href="#" id="logoutBtn">登出</a>
             `;

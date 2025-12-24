@@ -1,8 +1,9 @@
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getUserOrders, cancelOrder } from './firebase_db.js';
+import { getUserOrders, cancelOrder, getProducts } from './firebase_db.js';
 
 const auth = getAuth();
 let currentUserOrders = []; // Store for modal access
+let productMap = {}; // Id -> Product Mapping
 
 document.addEventListener('DOMContentLoaded', () => {
     // Modal Logic
@@ -24,12 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Fetch from Firestore
-            let orders = await getUserOrders(user.uid);
+            // Fetch Orders AND Products (for image repair)
+            const [orders, products] = await Promise.all([
+                getUserOrders(user.uid),
+                getProducts()
+            ]);
 
-            // Note: getUserOrders already returns array. Sorting is usually done in query but let's double check.
-            // firebase_db.js logic: orderBy("createdAt", "desc") is present.
-            // So 'orders' should be sorted.
+            // Build Product Map for fast lookup
+            products.forEach(p => {
+                productMap[p.id] = p;
+            });
 
             // Client-side sorting (Newest first)
             orders.sort((a, b) => {
@@ -71,6 +76,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     statusText = '已取消';
                 }
 
+                // Helper to get Best Image
+                // Helper to get Best Image
+                const getDisplayImage = (item) => {
+                    const isSuspicious = !item.image || (!item.image.startsWith('http') && !item.image.startsWith('data:'));
+
+                    // 1. Try Exact ID Match (e.g. "1")
+                    if (productMap[item.id]) {
+                        if (isSuspicious || productMap[item.id].image) return productMap[item.id].image;
+                    }
+
+                    // 2. Try Composite ID Match (e.g. "1-Color" -> "1")
+                    if (item.id && typeof item.id === 'string') {
+                        const baseId = item.id.split('-')[0];
+                        if (productMap[baseId]) {
+                            if (isSuspicious || productMap[baseId].image) return productMap[baseId].image;
+                        }
+                    }
+
+                    // 3. Try Title Match (Fallback)
+                    if (item.title) {
+                        const groupByTitle = Object.values(productMap).find(p => p.title === item.title);
+                        if (groupByTitle && (isSuspicious || groupByTitle.image)) {
+                            return groupByTitle.image;
+                        }
+                    }
+
+                    // 4. Default Fallback
+                    return isSuspicious ? 'https://via.placeholder.com/60?text=No+Img' : item.image;
+                };
+
                 return `
                     <div class="order-card" style="border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #fafafa;">
                         <div class="order-header" style="display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
@@ -87,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="order-items">
                             ${order.items.slice(0, 2).map(item => `
                                 <div class="order-item" style="display: flex; gap: 15px; margin-bottom: 10px; align-items: center;">
-                                    <img src="${item.image}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">
+                                    <img src="${getDisplayImage(item)}" onerror="this.src='https://via.placeholder.com/50?text=No+Img'" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">
                                     <div style="flex: 1;">
                                         <div style="font-size: 0.95rem; font-weight: 500;">${item.title}</div>
                                         <div style="font-size: 0.85rem; color: #666;">x ${item.quantity}</div>

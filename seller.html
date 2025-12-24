@@ -147,6 +147,50 @@
             style="margin-top: 10px; font-size: 0.85em; color: #475569; max-height: 100px; overflow-y: auto;"></div>
     </div>
 
+    <!-- User Management Section (Admin Only) -->
+    <div class="seller-container" id="user-management-section"
+        style="border-top: 1px solid #eee; margin-top: 20px; padding-top: 20px; display: none;">
+        <div class="dashboard-header">
+            <h3>人員權限管理</h3>
+        </div>
+
+        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <form id="userRoleForm" style="display: flex; gap: 10px; align-items: flex-end;">
+                <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                    <label>Email</label>
+                    <input type="email" id="u-email" placeholder="user@example.com" required>
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label>身分 (Role)</label>
+                    <select id="u-role">
+                        <option value="admin">管理員 (Admin)</option>
+                        <option value="seller">賣家 (Seller)</option>
+                        <option value="customer">一般會員 (Customer)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="height: 42px;">
+                    <i class="fa-solid fa-user-plus"></i> 設定權限
+                </button>
+            </form>
+        </div>
+
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>身分</th>
+                    <th>更新時間</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="user-role-list">
+                <tr>
+                    <td colspan="4" style="text-align: center;">載入中...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <!-- Edit/Add Product Modal -->
     <div id="product-form-modal" class="modal">
         <div class="modal-content">
