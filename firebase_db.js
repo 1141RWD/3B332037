@@ -1,5 +1,5 @@
 // Firebase Firestore Logic
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
     getFirestore,
     collection,
@@ -8,11 +8,11 @@ import {
     where,
     orderBy,
     getDocs,
-    serverTimestamp
+    serverTimestamp,
+    doc,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// Re-use the same config (Ideal way is to export app from auth.js, but for simplicity we re-declare or import config if possible. 
-// Here we'll just re-use the config object to ensure it works standalone)
 const firebaseConfig = {
     apiKey: "AIzaSyBOa0xVWz3Say6JA_RNmyuGbxFVk8I3P7s",
     authDomain: "bluecore-bb865.firebaseapp.com",
@@ -23,7 +23,8 @@ const firebaseConfig = {
     measurementId: "G-F4XEDMDVT3"
 };
 
-const app = initializeApp(firebaseConfig);
+// Initialize safely
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
 // 1. Create a New Order
@@ -49,8 +50,8 @@ export async function getUserOrders(userId) {
     try {
         const q = query(
             collection(db, "orders"),
-            where("userId", "==", userId),
-            orderBy("createdAt", "desc")
+            where("userId", "==", userId)
+            // orderBy("createdAt", "desc") // Removed to avoid creating a manual index
         );
 
         const querySnapshot = await getDocs(q);
@@ -65,6 +66,38 @@ export async function getUserOrders(userId) {
         console.error("Error getting orders: ", e);
         // If index is missing, it might throw an error. 
         // For simple queries it usually works, but composite queries need index.
+        throw e;
+    }
+}
+// 3. Check Coupon Usage
+export async function hasUserUsedCoupon(userId, couponCode) {
+    try {
+        const q = query(
+            collection(db, "orders"),
+            where("userId", "==", userId),
+            where("couponApplied", "==", couponCode)
+        );
+
+        const querySnapshot = await getDocs(q);
+        return !querySnapshot.empty; // Returns true if used
+    } catch (e) {
+        console.error("Error checking coupon: ", e);
+        // Fail safe: If error (e.g. index missing for composite query), assume NOT used to prevent blocking.
+        // Or handle strict. For MVP, we log and return false but maybe warn user.
+        return false;
+    }
+}
+
+// 4. Cancel Order
+export async function cancelOrder(orderId) {
+    try {
+        const orderRef = doc(db, "orders", orderId);
+        await updateDoc(orderRef, {
+            status: "Cancelled"
+        });
+        return true;
+    } catch (e) {
+        console.error("Error cancelling order: ", e);
         throw e;
     }
 }

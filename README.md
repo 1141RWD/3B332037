@@ -2,6 +2,33 @@
 
 BlueCore 是一個現代化、響應式 (RWD) 的電子商務網站，提供從數位 3C 到居家生活、美妝保養的多元頂級選物。本專案整合了動態互動介面、購物車系統、Firebase 會員驗證以及資安防護機制。
 
+## 🔧 Firebase Configuration (Firestore Rules)
+
+To ensure the checkout and order history features work correctly, you must set up the **Firestore Security Rules** in your Firebase Console.
+
+1. Go to **Firebase Console** > **Build** > **Firestore Database** > **Rules**.
+2. Paste the following code to allow authenticated users to read/write their own orders:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Orders: Users can read/write only their own orders
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // Default: Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+```
+3. Click **Publish**.
+
 ## 🌟 核心功能 (Features)
 
 ### 1. 現代化使用者介面 (UI/UX)

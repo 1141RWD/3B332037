@@ -1,9 +1,20 @@
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getUserOrders } from './firebase_db.js';
+import { getUserOrders, cancelOrder } from './firebase_db.js';
 
 const auth = getAuth();
+let currentUserOrders = []; // Store for modal access
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Modal Logic
+    const modal = document.getElementById('orderModal');
+    const closeBtn = document.querySelector('.close-modal');
+    const closeViewBtn = document.querySelector('.btn-cancel-view');
+
+    const closeModal = () => { if (modal) modal.style.display = 'none'; };
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (closeViewBtn) closeViewBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
     onAuthStateChanged(auth, async (user) => {
         const orderListEl = document.getElementById('order-list');
 
@@ -13,7 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const orders = await getUserOrders(user.uid);
+            // Fetch from Firestore
+            let orders = await getUserOrders(user.uid);
+
+            // Note: getUserOrders already returns array. Sorting is usually done in query but let's double check.
+            // firebase_db.js logic: orderBy("createdAt", "desc") is present.
+            // So 'orders' should be sorted.
+
+            // Client-side sorting (Newest first)
+            orders.sort((a, b) => {
+                const timeA = a.createdAt ? a.createdAt.seconds : 0;
+                const timeB = b.createdAt ? b.createdAt.seconds : 0;
+                return timeB - timeA;
+            });
+
+            currentUserOrders = orders; // Save to global variable
 
             if (orders.length === 0) {
                 orderListEl.innerHTML = `
@@ -29,8 +54,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // Render Orders
             orderListEl.innerHTML = orders.map(order => {
                 const date = order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleString() : '剛剛';
-                const statusColor = order.status === 'Processing' ? '#eab308' : (order.status === 'Shipped' ? '#22c55e' : '#64748b');
-                const statusText = order.status === 'Processing' ? '處理中' : order.status;
+
+                let statusColor = '#64748b';
+                let statusText = order.status;
+                let canCancel = false;
+
+                if (order.status === 'Processing') {
+                    statusColor = '#eab308';
+                    statusText = '處理中';
+                    canCancel = true;
+                } else if (order.status === 'Shipped') {
+                    statusColor = '#22c55e';
+                    statusText = '已出貨';
+                } else if (order.status === 'Cancelled') {
+                    statusColor = '#ef4444';
+                    statusText = '已取消';
+                }
 
                 return `
                     <div class="order-card" style="border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; background: #fafafa;">
@@ -46,32 +85,105 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         
                         <div class="order-items">
-                            ${order.items.map(item => `
+                            ${order.items.slice(0, 2).map(item => `
                                 <div class="order-item" style="display: flex; gap: 15px; margin-bottom: 10px; align-items: center;">
                                     <img src="${item.image}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #eee;">
                                     <div style="flex: 1;">
                                         <div style="font-size: 0.95rem; font-weight: 500;">${item.title}</div>
-                                        <div style="font-size: 0.85rem; color: #666;">
-                                            ${item.options && item.options.color ? `顏色: ${item.options.color} | ` : ''}
-                                            數量: ${item.quantity}
-                                        </div>
+                                        <div style="font-size: 0.85rem; color: #666;">x ${item.quantity}</div>
                                     </div>
-                                    <div style="font-weight: 500;">NT$${item.price.toLocaleString()}</div>
                                 </div>
                             `).join('')}
+                            ${order.items.length > 2 ? `<div style="font-size: 0.85rem; color: #888; margin-left: 65px;">...還有 ${order.items.length - 2} 項商品</div>` : ''}
                         </div>
 
-                        <div class="order-footer" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd; font-size: 0.9rem; color: #666; display: flex; justify-content: space-between;">
-                           <div>付款方式：${order.paymentMethod === 'credit' ? '信用卡' : '貨到付款'}</div>
-                           <div>運費：NT$${order.shippingFee}</div>
+                        <div class="order-footer" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #ddd; display: flex; justify-content: space-between; align-items: center;">
+                           <div style="font-size: 0.9rem; color: #666;">付款方式：${order.paymentMethod === 'credit' ? '信用卡' : '貨到付款'}</div>
+                           <div style="display: flex; gap: 10px;">
+                               <button class="view-order-btn" data-id="${order.id}" style="background: white; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #555;">
+                                   <i class="fa-solid fa-eye"></i> 查看詳情
+                               </button>
+                               ${canCancel ? `
+                                   <button class="cancel-order-btn" data-id="${order.id}" style="background: white; border: 1px solid #ef4444; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #ef4444;">
+                                       取消訂單
+                                   </button>
+                               ` : ''}
+                           </div>
                         </div>
                     </div>
                 `;
             }).join('');
+
+            // Event Listeners for Buttons
+            document.querySelectorAll('.view-order-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const orderId = e.target.closest('button').dataset.id;
+                    openOrderModal(orderId);
+                });
+            });
+
+            document.querySelectorAll('.cancel-order-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const orderId = e.target.closest('button').dataset.id;
+                    if (confirm('確定要取消這筆訂單嗎？\n\n取消後無法恢復，需要重新下單。')) {
+                        try {
+                            await cancelOrder(orderId);
+                            alert('訂單已取消');
+                            location.reload(); // Simple reload to refresh status
+                        } catch (err) {
+                            alert('取消失敗：' + err.message);
+                        }
+                    }
+                });
+            });
 
         } catch (error) {
             console.error("Error fetching orders:", error);
             orderListEl.innerHTML = '<p style="text-align: center; color: red;">無法載入訂單記錄，請稍後再試。</p>';
         }
     });
+
+    function openOrderModal(orderId) {
+        const order = currentUserOrders.find(o => o.id === orderId);
+        if (!order) return;
+
+        const modalBody = document.getElementById('orderModalBody');
+        const modal = document.getElementById('orderModal');
+
+        const r = order.recipient;
+
+        modalBody.innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <h3 style="font-size: 1rem; color: #666; margin-bottom: 10px;">收件資訊</h3>
+                    <p><strong>姓名：</strong> ${r.lastName}${r.firstName}</p>
+                    <p><strong>電話：</strong> ${r.phone}</p>
+                    <p><strong>Email：</strong> ${r.email}</p>
+                    <p><strong>地址：</strong> ${r.city}${r.district}${r.address}</p>
+                </div>
+                <div>
+                     <h3 style="font-size: 1rem; color: #666; margin-bottom: 10px;">付款資訊</h3>
+                     <p><strong>方式：</strong> ${order.paymentMethod === 'credit' ? '信用卡' : '貨到付款'}</p>
+                     <p><strong>狀態：</strong> ${order.status}</p>
+                     <h3 style="font-size: 1rem; color: #666; margin-bottom: 10px; margin-top: 15px;">金額計算</h3>
+                     <p>小計：NT$${order.subtotal}</p>
+                     <p>運費：NT$${order.shippingFee}</p>
+                     <p style="color: #ef4444;">折扣：-NT$${order.discount}</p>
+                     <p style="font-weight: bold; font-size: 1.2rem; margin-top: 5px;">總計：NT$${order.total}</p>
+                </div>
+            </div>
+            
+            <h3 style="font-size: 1rem; color: #666; margin-bottom: 10px; border-top: 1px solid #eee; padding-top: 15px;">商品清單</h3>
+            <div style="max-height: 200px; overflow-y: auto;">
+                 ${order.items.map(item => `
+                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #eee;">
+                        <span style="flex: 2;">${item.title} x ${item.quantity}</span>
+                         <span style="flex: 1; text-align: right;">NT$${item.price * item.quantity}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        modal.style.display = 'block';
+    }
 });

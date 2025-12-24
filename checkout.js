@@ -1,4 +1,6 @@
 // Checkout Logic
+import { createOrder, hasUserUsedCoupon } from './firebase_db.js';
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const cityDistricts = {
     "Taipei": { name: "台北市", districts: ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"] },
@@ -27,9 +29,9 @@ const cityDistricts = {
 
 // Valid Coupons (Mock Database)
 const validCoupons = {
-    'WELCOME100': { type: 'fixed', value: 100, minPurchase: 500 },
-    'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000 }, // 10% off
-    'FREESHIP': { type: 'shipping', value: 0, minPurchase: 0 }
+    'WELCOME100': { type: 'fixed', value: 100, minPurchase: 500, code: 'WELCOME100' },
+    'VIP2024': { type: 'percent', value: 0.9, minPurchase: 1000, code: 'VIP2024' }, // 10% off
+    'FREESHIP': { type: 'shipping', value: 0, minPurchase: 0, code: 'FREESHIP' }
 };
 
 let appliedCoupon = null;
@@ -118,18 +120,21 @@ function loadCartForCheckout() {
 
     // Calculations
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    let shipping = subtotal >= 499 ? 0 : 60; // Free shipping over 499
+    // Logic: Free shipping if subtotal >= 499 OR if applied coupon is shipping type
+    let shipping = subtotal >= 499 ? 0 : 60;
     let discount = 0;
 
-    // Apply Coupon
+    // Apply Coupon Logic
     if (appliedCoupon) {
-        // Validate Requirement
+        // 1. Check Min Purchase
         if (subtotal < appliedCoupon.minPurchase) {
             alert(`此優惠券需消費滿 ${formatCurrency(appliedCoupon.minPurchase)} 才能使用！`);
-            appliedCoupon = null; // Remove invalid coupon
-            document.getElementById('couponMessage').textContent = '';
+            appliedCoupon = null; // Remove invalid
+            const msg = document.getElementById('couponMessage');
+            if (msg) msg.textContent = '';
             document.getElementById('couponCode').value = '';
         } else {
+            // 2. Calculate Discount
             if (appliedCoupon.type === 'fixed') {
                 discount = appliedCoupon.value;
             } else if (appliedCoupon.type === 'percent') {
@@ -141,12 +146,13 @@ function loadCartForCheckout() {
     }
 
     if (discount > 0) {
-        discountRow.style.display = 'flex';
-        discountAmountEl.textContent = '-' + formatCurrency(discount);
+        if (discountRow) discountRow.style.display = 'flex';
+        if (discountAmountEl) discountAmountEl.textContent = '-' + formatCurrency(discount);
     } else if (appliedCoupon && appliedCoupon.type === 'shipping') {
-        discountRow.style.display = 'none'; // Shipping discount handled in shipping cost
+        // If free shipping coupon, we don't show a discount row but shipping fee becomes 0
+        if (discountRow) discountRow.style.display = 'none';
     } else {
-        discountRow.style.display = 'none';
+        if (discountRow) discountRow.style.display = 'none';
     }
 
     const total = subtotal + shipping - discount;
@@ -156,14 +162,36 @@ function loadCartForCheckout() {
     totalEl.textContent = formatCurrency(total);
 }
 
-function handleApplyCoupon() {
+async function handleApplyCoupon() {
     const codeInput = document.getElementById('couponCode');
     const msg = document.getElementById('couponMessage');
     const code = codeInput.value.trim().toUpperCase();
+    const auth = getAuth();
+    const user = auth.currentUser;
 
     if (!code) return;
 
+    if (!user) {
+        alert('請先登入才能使用優惠券！');
+        return;
+    }
+
+    // 1. Validate Code Existence
     if (validCoupons[code]) {
+        msg.textContent = '⏳ 驗證中...';
+        msg.style.color = 'orange';
+
+        // 2. Check Usage Limit (One per user)
+        const isUsed = await hasUserUsedCoupon(user.uid, code);
+        if (isUsed) {
+            appliedCoupon = null;
+            msg.textContent = '❌ 您已使用過此優惠券';
+            msg.style.color = 'red';
+            loadCartForCheckout();
+            return;
+        }
+
+        // 3. Apply
         appliedCoupon = validCoupons[code];
         msg.textContent = '✅ 優惠券已套用';
         msg.style.color = 'green';
@@ -176,80 +204,61 @@ function handleApplyCoupon() {
     }
 }
 
-import { createOrder } from './firebase_db.js';
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-// ... (existing imports or setup if any, but currently none)
-
 function handlePlaceOrder(e) {
     e.preventDefault();
 
+    // Auth Check
     const auth = getAuth();
     const user = auth.currentUser;
-
-    // Optional: Enforce Login
     if (!user) {
-        if (confirm('您尚未登入！\n\n登入後才能保存訂單記錄以便日後查詢。\n要現在去登入嗎？')) {
+        if (confirm('請先登入會員才能結帳喔！是否前往登入？')) {
             window.location.href = 'login.html';
-            return;
         }
-        // If they choose not to login, we can strictly block or allow as guest.
-        // For this feature "Order History", we generally need a user. 
-        // Let's block for now to ensure data integrity for the requested feature.
         return;
     }
 
-    // Validate Cart
+    // Prepare Data
     const cart = JSON.parse(localStorage.getItem('cart')) || [];
     if (cart.length === 0) return;
 
-    // Collect Form Data
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let shipping = subtotal >= 499 ? 0 : 60;
+
+    let discount = 0;
+    if (appliedCoupon) {
+        if (appliedCoupon.type === 'fixed') discount = appliedCoupon.value;
+        else if (appliedCoupon.type === 'percent') discount = subtotal * (1 - appliedCoupon.value);
+        else if (appliedCoupon.type === 'shipping') shipping = 0;
+    }
+
+    const total = subtotal + shipping - discount;
+
+    const cityKey = document.getElementById('city').value;
+    const cityName = cityDistricts[cityKey] ? cityDistricts[cityKey].name : cityKey;
+
     const formData = {
         recipient: {
             lastName: document.getElementById('lastName').value,
             firstName: document.getElementById('firstName').value,
             phone: document.getElementById('phone').value,
             email: document.getElementById('email').value,
-            city: document.getElementById('city').value,
+            city: cityName, // Save Name (e.g. 台北市) not Key (e.g. Taipei)
             district: document.getElementById('district').value,
             address: document.getElementById('address').value
         },
         paymentMethod: document.querySelector('input[name="payment"]:checked').value
     };
 
-    // Calculate Totals
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    // Re-calculate shipping (logic must match loadCartForCheckout ideally, or we trust visual)
-    // Note: appliedCoupon is a local variable in the module scope (if defined above).
-    // careful: checkout.js was just script, now module. Vars are scoped to module.
-    // 'appliedCoupon' needs to be accessible. It is defined in global scope in original file?
-    // In original file, 'appliedCoupon' was top level. It works.
-
-    // We need to re-calculate final total to be safe or define global getters. 
-    // Simply grabbing text content is risky but easier for MVP.
-    // Better: Reuse the calculation logic.
-
-    let shipping = subtotal >= 499 ? 0 : 60;
-    if (appliedCoupon && appliedCoupon.type === 'shipping') shipping = 0;
-
-    let discount = 0;
-    if (appliedCoupon) {
-        if (appliedCoupon.type === 'fixed') discount = appliedCoupon.value;
-        else if (appliedCoupon.type === 'percent') discount = subtotal * (1 - appliedCoupon.value);
-    }
-
-    const total = subtotal + shipping - discount;
-
-    // Build Order Object
     const orderData = {
         items: cart,
         subtotal: subtotal,
         shippingFee: shipping,
         discount: discount,
         total: total,
-        recipient: formData,
+        recipient: formData.recipient,
         paymentMethod: formData.paymentMethod,
-        couponApplied: appliedCoupon ? appliedCoupon.code : null // Assuming we store code in appliedCoupon if possible, or just ignore
+        couponApplied: appliedCoupon ? appliedCoupon.code : null, // Store coupon code to track usage
+        status: "Processing"
     };
 
     // UI Feedback
@@ -257,16 +266,25 @@ function handlePlaceOrder(e) {
     btn.disabled = true;
     btn.textContent = '訂單處理中...';
 
+    // Timeout Safety (5 seconds)
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('連線逾時，請檢查網路或稍後再試')), 5000)
+    );
+
     // Send to Firestore
-    createOrder(user.uid, orderData)
+    Promise.race([createOrder(user.uid, orderData), timeoutPromise])
         .then((orderId) => {
             alert(`🎉 訂單已成功送出！\n\n訂單編號：${orderId}\n感謝您的購買，我們將盡快為您出貨。`);
             localStorage.removeItem('cart');
-            window.location.href = 'index.html'; // Or redirect to profile order history
+            window.location.href = 'profile.html';
         })
         .catch((error) => {
             console.error("Order failed", error);
-            alert('訂單送出失敗，請稍後再試：' + error.message);
+            let msg = error.message;
+            if (msg.includes('Missing or insufficient permissions')) {
+                msg = '權限不足 (可能需要設定 Firestore Rules)';
+            }
+            alert('訂單送出失敗：' + msg);
             btn.disabled = false;
             btn.textContent = '確認結帳';
         });
