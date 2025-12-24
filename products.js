@@ -254,7 +254,7 @@ const products = [
         id: 23,
         title: "Baseus 倍思 車用磁吸手機支架",
         price: 490,
-        image: "images/baseus.jpg   ",
+        image: "images/baseus.jpeg",
         sold: 5000 + "+",
         category: "auto",
         options: {
