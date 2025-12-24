@@ -580,6 +580,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Hero Button Logic (iPhone 17 Pro Max -> ID 1)
+    const heroBtn = document.querySelector('.hero-btn');
+    if (heroBtn) {
+        heroBtn.addEventListener('click', () => {
+            // Assuming openProductModal is globally available or defined in scope
+            if (typeof openProductModal === 'function') {
+                openProductModal(1);
+            }
+        });
+    }
 });
 
 cartBtn.addEventListener('click', (e) => {
