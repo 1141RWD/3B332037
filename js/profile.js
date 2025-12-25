@@ -348,10 +348,10 @@ document.addEventListener('DOMContentLoaded', () => {
                      <p><strong>方式：</strong> ${order.paymentMethod === 'credit' ? '信用卡' : '貨到付款'}</p>
                      <p><strong>狀態：</strong> ${order.status}</p>
                      <h3 style="font-size: 1rem; color: #666; margin-bottom: 10px; margin-top: 15px;">金額計算</h3>
-                     <p>小計：NT$${order.subtotal}</p>
-                     <p>運費：NT$${order.shippingFee}</p>
-                     <p style="color: #ef4444;">折扣：-NT$${order.discount}</p>
-                     <p style="font-weight: bold; font-size: 1.2rem; margin-top: 5px;">總計：NT$${order.total}</p>
+                     <p>小計：NT$${Math.round(order.subtotal).toLocaleString()}</p>
+                     <p>運費：NT$${Math.round(order.shippingFee).toLocaleString()}</p>
+                     <p style="color: #ef4444;">折扣：-NT$${Math.round(order.discount).toLocaleString()}</p>
+                     <p style="font-weight: bold; font-size: 1.2rem; margin-top: 5px;">總計：NT$${Math.round(order.total).toLocaleString()}</p>
                 </div>
             </div>
             
