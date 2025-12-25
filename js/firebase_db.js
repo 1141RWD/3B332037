@@ -10,7 +10,9 @@ import {
     getDocs,
     serverTimestamp,
     doc,
-    updateDoc
+    updateDoc,
+    writeBatch,
+    increment
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -30,14 +32,10 @@ export const db = getFirestore(app);
 // 1. Create a New Order (and Update Sold Counts)
 // 1. Create a New Order (and Update Sold Counts)
 export async function createOrder(userId, orderData) {
-    // Import batch and atomic utils
-    const { writeBatch, increment, setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-
     try {
         // A. Primary Action: Create Order Document (Must succeed)
-        // We do this independently so it doesn't fail if product updates fail
-        const orderRef = doc(collection(db, "orders")); // Generate ID first
-        await setDoc(orderRef, {
+        // Using addDoc automatically handles ID generation and is strictly a "create" operation
+        const orderRef = await addDoc(collection(db, "orders"), {
             userId: userId,
             ...orderData,
             createdAt: serverTimestamp(),
@@ -45,7 +43,6 @@ export async function createOrder(userId, orderData) {
         });
 
         // B. Secondary Action: Increment Sold Count for each item (Best Effort)
-        // This acts as a background task. If it fails (e.g. permission denied), we don't fail the order.
         try {
             const batch = writeBatch(db);
             const items = orderData.items || [];
@@ -69,8 +66,7 @@ export async function createOrder(userId, orderData) {
                 await batch.commit();
             }
         } catch (updateError) {
-            console.warn("Notice: Could not update product 'sold' counts (likely permission issue or product missing). Order was still placed successfully.", updateError);
-            // We swallow this error intentionally so the user can still check out.
+            console.warn("Notice: Could not update product 'sold' counts. Order success is unaffected.", updateError);
         }
 
         console.log("Order written with ID: ", orderRef.id);

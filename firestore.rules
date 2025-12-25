@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Orders: Allow create if authenticated. Allow generic read/write if owner.
+    match /orders/{orderId} {
+      allow create: if isAuthenticated();
+      allow read, update: if isOwner(resource.data.userId);
+      // Admin override would go here
+    }
+
+    // Products: Read-only for public, Write for sellers/admins (simplified)
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAuthenticated(); // Caution: In production, verify role here
+    }
+
+    // User Roles: Protected
+    match /user_roles/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
