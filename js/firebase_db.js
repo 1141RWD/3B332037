@@ -28,44 +28,56 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const db = getFirestore(app);
 
 // 1. Create a New Order (and Update Sold Counts)
+// 1. Create a New Order (and Update Sold Counts)
 export async function createOrder(userId, orderData) {
     // Import batch and atomic utils
-    const { writeBatch, increment } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-    const batch = writeBatch(db);
+    const { writeBatch, increment, setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
 
     try {
-        // A. Prepare Order Document
+        // A. Primary Action: Create Order Document (Must succeed)
+        // We do this independently so it doesn't fail if product updates fail
         const orderRef = doc(collection(db, "orders")); // Generate ID first
-        batch.set(orderRef, {
+        await setDoc(orderRef, {
             userId: userId,
             ...orderData,
             createdAt: serverTimestamp(),
             status: "Processing"
         });
 
-        // B. Increment Sold Count for each item
-        const items = orderData.items || [];
-        items.forEach(item => {
-            let productDocId = String(item.originalId || item.id);
-            if ((!item.originalId) && productDocId.includes('-')) {
-                productDocId = productDocId.split('-')[0];
-            }
+        // B. Secondary Action: Increment Sold Count for each item (Best Effort)
+        // This acts as a background task. If it fails (e.g. permission denied), we don't fail the order.
+        try {
+            const batch = writeBatch(db);
+            const items = orderData.items || [];
+            let hasUpdates = false;
 
-            const productRef = doc(db, "products", productDocId);
+            items.forEach(item => {
+                let productDocId = String(item.originalId || item.id);
+                if ((!item.originalId) && productDocId.includes('-')) {
+                    productDocId = productDocId.split('-')[0];
+                }
 
-            batch.update(productRef, {
-                sold: increment(item.quantity || 1)
+                const productRef = doc(db, "products", productDocId);
+
+                batch.update(productRef, {
+                    sold: increment(item.quantity || 1)
+                });
+                hasUpdates = true;
             });
-        });
 
-        // C. Commit Batch
-        await batch.commit();
+            if (hasUpdates) {
+                await batch.commit();
+            }
+        } catch (updateError) {
+            console.warn("Notice: Could not update product 'sold' counts (likely permission issue or product missing). Order was still placed successfully.", updateError);
+            // We swallow this error intentionally so the user can still check out.
+        }
 
         console.log("Order written with ID: ", orderRef.id);
         return orderRef.id;
 
     } catch (e) {
-        console.error("Error adding order: ", e);
+        console.error("Error creating order: ", e);
         throw e;
     }
 }
