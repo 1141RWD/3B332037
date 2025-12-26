@@ -91,8 +91,14 @@
 
         <!-- Bottom Section: Order History -->
         <div class="auth-box order-history-box" style="width: 100%; max-width: 1000px; margin: 0; text-align: left;">
-            <h2><i class="fa-solid fa-clock-rotate-left"></i> 歷史訂單</h2>
-            <div id="order-list" style="margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h2 style="margin: 0;"><i class="fa-solid fa-clock-rotate-left"></i> 歷史訂單</h2>
+                <button id="toggle-hidden-orders-btn"
+                    style="background: white; border: 1px solid #ddd; padding: 6px 15px; border-radius: 20px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: all 0.2s;">
+                    <i class="fa-solid fa-eye-slash"></i> 查看已隱藏訂單
+                </button>
+            </div>
+            <div id="order-list" style="margin-top: 10px;">
                 <p style="text-align: center; color: #999;">載入中...</p>
             </div>
         </div>
@@ -134,7 +140,7 @@
 
             </div>
             <div class="copyright">
-                &copy; 2025 BlueCore Inc. All Rights Reserved. <span class="version">Build 733a416</span>
+                &copy; 2025 BlueCore Inc. All Rights Reserved. <span class="version">Build cf496bb</span>
             </div>
         </div>
     </footer>
@@ -156,12 +162,10 @@
         </div>
     </div>
 
-    <script type="module" src="js/notification.js?v=733a416"></script>
-    <script type="module" src="js/ui.js?v=733a416"></script>
-    <script type="module" src="js/auth.js?v=733a416"></script>
-    <script type="module" src="js/profile.js?v=733a416"></script>
+    <script type="module" src="js/notification.js?v=cf496bb"></script>
+    <script type="module" src="js/ui.js?v=cf496bb"></script>
+    <script type="module" src="js/auth.js?v=cf496bb"></script>
+    <script type="module" src="js/profile.js?v=FIX_FINAL"></script>
 </body>
 
 </html>
-
-

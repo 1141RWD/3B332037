@@ -1371,6 +1371,10 @@ footer::before {
     animation: fadeIn 0.3s;
 }
 
+.modal.show {
+    display: block;
+}
+
 .modal-content {
     background-color: #fff;
     margin: 5% auto;

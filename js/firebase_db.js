@@ -79,7 +79,7 @@ export async function createOrder(userId, orderData) {
 }
 
 // 2. Get User Orders
-export async function getUserOrders(userId) {
+export async function getUserOrders(userId, includeHidden = false) {
     const orders = [];
     try {
         const q = query(
@@ -89,14 +89,19 @@ export async function getUserOrders(userId) {
 
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
-            orders.push({
-                id: doc.id,
-                ...doc.data()
-            });
+            const data = doc.data();
+            // If includeHidden is true, we take everything.
+            // If false (default), we only take those NOT hidden.
+            if (includeHidden || !data.isHiddenForUser) {
+                orders.push({
+                    id: doc.id,
+                    ...data
+                });
+            }
         });
         return orders;
     } catch (e) {
-        console.error("Error getting orders: ", e);
+        console.error("Error getting user orders: ", e);
         throw e;
     }
 }
@@ -117,7 +122,21 @@ export async function hasUserUsedCoupon(userId, couponCode) {
     }
 }
 
-// 4. Cancel Order
+// 3. Update Status (Admin)
+export async function updateOrderStatus(orderId, status) {
+    try {
+        const orderRef = doc(db, "orders", orderId);
+        await updateDoc(orderRef, {
+            status: status
+        });
+        return true;
+    } catch (e) {
+        console.error("Error updating order: ", e);
+        throw e;
+    }
+}
+
+// 4. Cancel Order (User)
 export async function cancelOrder(orderId) {
     try {
         const orderRef = doc(db, "orders", orderId);
@@ -127,6 +146,33 @@ export async function cancelOrder(orderId) {
         return true;
     } catch (e) {
         console.error("Error cancelling order: ", e);
+        throw e;
+    }
+}
+
+// 4.1 Hide/Unhide Order (User Side)
+export async function hideOrder(orderId) {
+    try {
+        const orderRef = doc(db, "orders", orderId);
+        await updateDoc(orderRef, {
+            isHiddenForUser: true
+        });
+        return true;
+    } catch (e) {
+        console.error("Error hiding order: ", e);
+        throw e;
+    }
+}
+
+export async function unhideOrder(orderId) {
+    try {
+        const orderRef = doc(db, "orders", orderId);
+        await updateDoc(orderRef, {
+            isHiddenForUser: false
+        });
+        return true;
+    } catch (e) {
+        console.error("Error unhiding order: ", e);
         throw e;
     }
 }

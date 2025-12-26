@@ -234,14 +234,19 @@ onAuthStateChanged(auth, async (user) => {
 
             // Fetch Role for Header
             let roleDisplay = '';
+            let role = 'customer'; // Default
             try {
                 const { getUserRole } = await import('./firebase_db.js');
-                const role = await getUserRole(user.uid, user.email);
+                role = await getUserRole(user.uid, user.email);
                 const roleMap = { 'admin': '管理員', 'seller': '賣家', 'customer': '會員' };
                 roleDisplay = ` <span class="badge-role" style="background:#eee; padding:2px 6px; border-radius:4px; font-size:0.8em; color:#555;">${roleMap[role] || role}</span>`;
             } catch (e) { console.error(e); }
 
+            const adminLink = role === 'admin' ?
+                `<a href="admin.html" style="color: #ef4444; font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-screwdriver-wrench"></i> 管理中心</a> <span>|</span> ` : '';
+
             userLinks.innerHTML = `
+                ${adminLink}
                 <a href="profile.html" title="修改會員資料">
                     <i class="fa-solid fa-user"></i> 歡迎回來! ${displayName} ${roleDisplay}
                 </a>

@@ -621,6 +621,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = searchInput.value.trim().toLowerCase();
         if (!query) return;
 
+        // console.log(`[Search Debug] Query: "${query}" (Length: ${query.length})`);
+
         const filtered = products.filter(p =>
             p.title.toLowerCase().includes(query) ||
             (p.category && p.category.toLowerCase().includes(query))
@@ -678,6 +680,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
         }
+
+        // Auto-scroll to results
+        const productsSection = document.querySelector('.products-section');
+        if (productsSection) {
+            productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     if (searchBtn && searchInput) {
@@ -698,7 +706,9 @@ document.addEventListener('DOMContentLoaded', () => {
     hotKeywords.forEach(kw => {
         kw.addEventListener('click', (e) => {
             e.preventDefault();
-            const term = e.target.textContent;
+            // Use data-term if available (for mapped terms like PS5 -> PlayStation 5), else text content
+            const rawTerm = e.target.getAttribute('data-term') || e.target.textContent;
+            const term = rawTerm.replace(/\s+/g, ' ').trim();
             if (searchInput) {
                 searchInput.value = term;
                 performSearch();

@@ -1,0 +1,232 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理中心 - BlueCore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .admin-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Tables */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-table th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .admin-table tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Buttons */
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+            margin-right: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-approve {
+            background-color: #10b981;
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background-color: #059669;
+        }
+
+        .btn-reject {
+            background-color: #ef4444;
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-edit {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        .btn-save {
+            background-color: #0ea5e9;
+            color: white;
+        }
+
+        /* Search & Filter */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .role-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .bg-admin {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .bg-seller {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .bg-customer {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fa-solid fa-microchip"></i> BlueCore
+            </a>
+            <div class="user-links">
+                <!-- Auth Info Injected -->
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- 1. Seller Requests -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-bell" style="color: #f59e0b;"></i> 賣家申請審核</h2>
+            </div>
+            <div id="seller-requests-container">
+                <p style="color: #666; text-align: center;">載入中...</p>
+            </div>
+        </div>
+
+        <!-- 2. User Management -->
+        <div class="admin-section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-users-gear" style="color: #3b82f6;"></i> 人員權限管理</h2>
+            </div>
+
+            <div class="filter-bar">
+                <input type="text" id="userLinkSearch" class="search-input" placeholder="搜尋 UID 或 Email...">
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>UID / Email</th>
+                            <th>目前身分</th>
+                            <th>更新時間</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list-body">
+                        <tr>
+                            <td colspan="4" style="text-align: center;">載入中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div id="roleModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-modal">&times;</span>
+            <h2 style="margin-bottom: 20px;">設定權限</h2>
+            <div class="form-group">
+                <label>User UID</label>
+                <input type="text" id="modalUid" disabled style="background:#f5f5f5;">
+            </div>
+            <div class="form-group">
+                <label>身份 (Role)</label>
+                <select id="modalRoleSelect" class="role-select" style="width: 100%; padding: 10px;">
+                    <option value="customer">一般會員 (Customer)</option>
+                    <option value="seller">賣家 (Seller)</option>
+                    <option value="admin">管理員 (Admin)</option>
+                </select>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button id="saveRoleBtn" class="btn-action btn-save" style="padding: 10px 20px;">
+                    <i class="fa-solid fa-save"></i> 儲存設定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/notification.js?v=cf496bb"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/admin.js"></script>
+</body>
+
+</html>

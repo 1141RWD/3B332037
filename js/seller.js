@@ -34,7 +34,8 @@ onAuthStateChanged(auth, async (user) => {
 
 async function initDashboard() {
     loadProducts();
-    initUserManagement();
+    loadProducts();
+    // initUserManagement(); // Removed
 }
 
 // 2. Load & Render Products
@@ -145,6 +146,21 @@ window.editProduct = function (id) {
     document.getElementById('p-image-file').value = ''; // Reset file input
 
     modal.style.display = 'block';
+};
+
+window.removeProduct = async function (id) {
+    const confirmFunc = window.showConfirm || confirm;
+    if (!(await confirmFunc('確定要刪除這項商品嗎？此動作無法復原。'))) return;
+
+    try {
+        await deleteProduct(id);
+        if (window.showToast) showToast('商品已刪除', 'success');
+        else alert('商品已刪除');
+        loadProducts(); // Reload list
+    } catch (e) {
+        if (window.showToast) showToast('刪除失敗: ' + e.message, 'error');
+        else alert('刪除失敗: ' + e.message);
+    }
 };
 
 // Image Upload Logic
@@ -323,7 +339,8 @@ window.migrateImagesToDB = async function () {
     const btn = document.getElementById('btn-migrate');
     const log = document.getElementById('migration-log');
 
-    if (!confirm('這將會掃描所有商品，下載舊圖片並重新上傳到資料庫。確定要執行嗎？')) return;
+    const confirmFunc = window.showConfirm || confirm;
+    if (!(await confirmFunc('這將會掃描所有商品，下載舊圖片並重新上傳到資料庫。確定要執行嗎？'))) return;
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 處理中...';
@@ -336,7 +353,7 @@ window.migrateImagesToDB = async function () {
         for (const p of products) {
             // Check if it's a local path (simple check)
             if (p.image && !p.image.startsWith('data:') && !p.image.startsWith('http') && (p.image.includes('images/') || !p.image.includes('/'))) {
-                log.innerHTML += `< div > 正在處理: ${p.title} (${p.image})...</div > `;
+                log.innerHTML += `<div> 正在處理: ${p.title} (${p.image})...</div>`;
 
                 try {
                     // Fetch the image
@@ -349,23 +366,23 @@ window.migrateImagesToDB = async function () {
 
                     // Update DB
                     await updateProduct(p.id, { image: base64 });
-                    log.innerHTML += `< div style = "color: green;" > -> 成功存入資料庫</div > `;
+                    log.innerHTML += `<div style="color: green;"> -> 成功存入資料庫</div>`;
                     count++;
                 } catch (err) {
                     console.error(err);
-                    log.innerHTML += `< div style = "color: red;" > -> 失敗: ${err.message}</div > `;
+                    log.innerHTML += `<div style="color: red;"> -> 失敗: ${err.message}</div>`;
                 }
             }
         }
 
-        log.innerHTML += `< div style = "font-weight: bold; margin-top: 5px;" > 處理完成！共更新了 ${count} 個商品。</div > `;
-        showToast(`遷移完成！更新了 ${count} 個圖片`, 'success');
+        log.innerHTML += `<div style="font-weight: bold; margin-top: 5px;"> 處理完成！共更新了 ${count} 個商品。</div>`;
+        if (window.showToast) showToast(`遷移完成！更新了 ${count} 個圖片`, 'success');
 
         // Refresh list
         loadProducts();
 
     } catch (e) {
-        showToast('遷移過程發生錯誤', 'error');
+        if (window.showToast) showToast('遷移過程發生錯誤', 'error');
         console.error(e);
     } finally {
         btn.disabled = false;
@@ -414,163 +431,5 @@ function compressBlob(blob) {
 //    }
 // };
 
-// 6. User Management Logic (Admin Only)
-async function initUserManagement() {
-    const section = document.getElementById('user-management-section');
-    const user = auth.currentUser;
-    if (!user) return;
 
-    // Double check role
-    const role = await getUserRole(user.uid, user.email);
-    // Also allow superuser hardcode
-    if (role === 'admin') {
-        section.style.display = 'block';
-        loadSellerRequests(); // New: Load Requests
-        loadUserList();
-    }
-}
-
-// 6.1 Seller Requests
-async function loadSellerRequests() {
-    const container = document.getElementById('seller-requests-container');
-    if (!container) return; // Needs HTML update to add this container
-
-    container.innerHTML = '<p>載入申請中...</p>';
-
-    try {
-        const { getSellerRequests, resolveSellerRequest } = await import('./firebase_db.js');
-        const requests = await getSellerRequests();
-
-        if (requests.length === 0) {
-            container.innerHTML = '<p style="color:#888;">目前沒有待審核的申請。</p>';
-            return;
-        }
-
-        container.innerHTML = `
-            <table class="product-table" style="margin-bottom:20px; border:2px solid #eab308;">
-                <thead style="background:#fef9c3;">
-                    <tr>
-                        <th>申請人 (UID/Email)</th>
-                        <th>理由</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${requests.map(req => `
-                        <tr>
-                            <td>
-                                <div>${req.uid.substring(0, 6)}...</div>
-                                <div style="font-size:0.8em; color:#666;">${req.email}</div>
-                            </td>
-                            <td>${req.reason}</td>
-                            <td>
-                                <button class="btn-primary" style="padding:4px 8px; font-size:0.8em;" onclick="handleRequest('${req.uid}', true)">
-                                    <i class="fa-solid fa-check"></i> 核准
-                                </button>
-                                <button class="btn-secondary" style="padding:4px 8px; font-size:0.8em;" onclick="handleRequest('${req.uid}', false)">
-                                    <i class="fa-solid fa-xmark"></i> 拒絕
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-
-        window.handleRequest = async (uid, approve) => {
-            if (!confirm(approve ? '確定將此用戶升級為賣家？' : '確定拒絕此申請？')) return;
-            try {
-                await resolveSellerRequest(uid, approve);
-                showToast(approve ? '已核准申請' : '已拒絕申請', 'success');
-                loadSellerRequests(); // Reload requests
-                loadUserList(); // Reload main list to see new role
-            } catch (e) {
-                console.error(e);
-                showToast('操作失敗', 'error');
-            }
-        };
-
-    } catch (e) {
-        console.error("Requests Error", e);
-        container.innerHTML = '<p style="color:red;">無法載入申請</p>';
-    }
-}
-
-async function loadUserList() {
-    const list = document.getElementById('user-role-list');
-    list.innerHTML = '<tr><td colspan="4" style="text-align:center">載入中...</td></tr>';
-
-    const users = await getAllUserRoles();
-
-    if (users.error) {
-        list.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">錯誤: ${users.error}</td></tr>`;
-        return;
-    }
-
-    if (users.length === 0) {
-        list.innerHTML = '<tr><td colspan="4" style="text-align:center">目前沒有權限資料</td></tr>';
-        return;
-    }
-
-    // Safe rendering loop
-    list.innerHTML = users.map(u => {
-        // Fallback: If UID doesn't exist, use ID (doc key), or Email, or 'N/A'
-        const displayId = u.uid || u.id || u.email || 'N/A';
-        const shortId = (displayId && displayId.length > 8) ? displayId.substring(0, 8) + '...' : displayId;
-
-        return `
-        <tr>
-            <td title="${displayId}" style="font-family:monospace; font-size:0.9em;">
-                ${shortId}
-                <div style="font-size:0.8em; color:#888;">${u.email || '(No Email)'}</div>
-            </td>
-            <td>
-                <span style="
-                    padding: 4px 8px; border-radius: 4px; font-size: 0.9em;
-                    background: ${u.role === 'admin' ? '#fee2e2' : u.role === 'seller' ? '#e0f2fe' : '#f1f5f9'};
-                    color: ${u.role === 'admin' ? '#ef4444' : u.role === 'seller' ? '#0284c7' : '#64748b'};
-                ">
-                    ${(u.role || 'USER').toUpperCase()}
-                </span>
-            </td>
-            <td>${u.updatedAt ? new Date(u.updatedAt.seconds * 1000).toLocaleDateString() : '-'}</td>
-            <td>
-                <button class="action-btn edit-btn" onclick="fillUserForm('${displayId}', '${u.role}')">
-                    <i class="fa-solid fa-pen"></i> 編輯
-                </button>
-            </td>
-        </tr>`;
-    }).join('');
-}
-
-window.fillUserForm = function (uid, role) {
-    document.getElementById('u-email').value = uid; // This input is used for lookup
-    document.getElementById('u-role').value = role || 'user';
-};
-
-// Handle Form Submit
-const userForm = document.getElementById('userRoleForm');
-if (userForm) {
-    userForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const uid = document.getElementById('u-email').value.trim(); // Uses same inputs ID
-        const role = document.getElementById('u-role').value;
-
-        if (!uid) return;
-
-        try {
-            await setUserRole(uid, role, 'Admin-Set'); // We often don't know the email here
-            showToast(`權限設定成功: ${uid} -> ${role}`, 'success');
-            loadUserList(); // Refresh
-            userForm.reset();
-        } catch (err) {
-            console.error(err);
-            showToast('設定失敗: ' + err.message, 'error');
-        }
-    });
-}
-
-// Call initDashboard is already called, but we add initUserManagement there?
-// Let's hook it into initDashboard or call it if auth check passes.
-// I'll append a call to initUserManagement() inside initDashboard functions or manually call it.
 
