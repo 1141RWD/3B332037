@@ -1,5 +1,6 @@
 // Product data loaded from Firestoe
 import { getProducts } from './firebase_db.js';
+import { initPresence } from './presence.js';
 
 // DOM Elements
 const productGrid = document.querySelector('.product-grid');
@@ -501,11 +502,18 @@ function removeFromCart(cartItemId, event) {
 window.removeFromCart = removeFromCart;
 
 // Expose addToCart to global scope for onclick handler
-window.addToCart = addToCart;
 
-// Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial Render
+
+// Initial Load
+document.addEventListener('DOMContentLoaded', async () => {
+
+    // Init Real-time Presence
+    initPresence((count) => {
+        const el = document.getElementById('online-count');
+        if (el) el.textContent = count;
+    });
+
+    renderHotSearch(); // Helper function defined below
     init();
     updateCartUI(); // FIX: Sync cart UI with localStorage on load
 
