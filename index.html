@@ -55,9 +55,25 @@
                 <a href="#" class="logo">
                     <i class="fa-solid fa-microchip"></i> BlueCore
                 </a>
-                <div class="search-bar">
-                    <input type="text" placeholder="搜尋商品、品牌...">
-                    <button><i class="fa-solid fa-magnifying-glass"></i></button>
+                <div class="search-wrapper" style="flex: 1; display: flex; flex-direction: column; margin: 0 20px;">
+                    <div class="search-bar" style="width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <input type="text" id="searchInput" placeholder="搜尋商品、品牌...">
+                        <button id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+                    <div class="hot-search"
+                        style="margin-top: 8px; font-size: 0.85rem; color: rgba(255,255,255,0.9); padding-left: 10px;">
+                        <i class="fa-solid fa-fire" style="color: #fbbf24; margin-right: 5px;"></i>
+                        熱搜：
+                        <a href="#" class="hot-kw"
+                            style="color: white; margin-right: 8px; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);">iPhone
+                            15</a>
+                        <a href="#" class="hot-kw"
+                            style="color: white; margin-right: 8px; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);">PS5</a>
+                        <a href="#" class="hot-kw"
+                            style="color: white; margin-right: 8px; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);">Switch</a>
+                        <a href="#" class="hot-kw"
+                            style="color: white; text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3);">AirPods</a>
+                    </div>
                 </div>
                 <div class="header-icons">
                     <a href="login.html" class="login-icon" style="color: white; font-size: 1.2rem;">

@@ -693,6 +693,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Hot Keywords Logic
+    const hotKeywords = document.querySelectorAll('.hot-kw');
+    hotKeywords.forEach(kw => {
+        kw.addEventListener('click', (e) => {
+            e.preventDefault();
+            const term = e.target.textContent;
+            if (searchInput) {
+                searchInput.value = term;
+                performSearch();
+            }
+        });
+    });
+
     // Hero Button Logic (iPhone 17 Pro Max -> ID 1)
     const heroBtn = document.querySelector('.hero-btn');
     if (heroBtn) {
