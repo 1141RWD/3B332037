@@ -25,8 +25,14 @@ service cloud.firestore {
     }
 
     // User Roles: Protected
+    // User Roles: Allow read/write for auth users (Opened for Admin Dashboard usage)
     match /user_roles/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if isAuthenticated();
+    }
+
+    // Seller Requests: Open for application flow
+    match /seller_requests/{userId} {
+      allow read, write: if isAuthenticated();
     }
   }
 }
