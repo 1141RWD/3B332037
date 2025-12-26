@@ -196,6 +196,60 @@
             font-weight: 500;
         }
 
+        /* Payment Options Styling */
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .payment-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: white;
+            color: #64748b;
+        }
+
+        .payment-card:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+
+        /* Hide default radio */
+        .payment-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* Selected State */
+        .payment-card:has(input:checked) {
+            border-color: var(--primary-color);
+            background-color: #f0f9ff;
+            /* Light blue tint */
+            color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .payment-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .payment-name {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -227,6 +281,7 @@
         <form id="checkoutForm" class="checkout-container">
             <!-- Left Column: Shipping Info -->
             <div class="checkout-section">
+                <!-- ... existing content ... -->
                 <h2 class="checkout-title">收件資訊</h2>
 
                 <div class="form-row">
@@ -281,14 +336,16 @@
 
                 <h2 class="checkout-title" style="margin-top: 30px;">付款方式</h2>
                 <div class="form-group">
-                    <div style="display: flex; gap: 15px;">
-                        <label
-                            style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
-                            <input type="radio" name="payment" value="credit" checked> 信用卡
+                    <div class="payment-options">
+                        <label class="payment-card">
+                            <input type="radio" name="payment" value="credit" checked>
+                            <div class="payment-icon"><i class="fa-regular fa-credit-card"></i></div>
+                            <div class="payment-name">信用卡付款</div>
                         </label>
-                        <label
-                            style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
-                            <input type="radio" name="payment" value="cod"> 貨到付款
+                        <label class="payment-card">
+                            <input type="radio" name="payment" value="cod">
+                            <div class="payment-icon"><i class="fa-solid fa-truck-fast"></i></div>
+                            <div class="payment-name">貨到付款</div>
                         </label>
                     </div>
                 </div>
@@ -380,5 +437,3 @@
 </body>
 
 </html>
-
-
