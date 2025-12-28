@@ -1,5 +1,5 @@
 // Product data loaded from Firestoe
-import { getProducts } from './firebase_db.js';
+import { getProducts } from './firebase_db.js?v=11';
 import { initPresence } from './presence.js';
 
 // DOM Elements
@@ -76,17 +76,28 @@ function renderProducts(filterCategory = 'all') {
 async function init() {
     try {
         products = await getProducts();
+        console.log(`[init] Fetched ${products.length} products.`);
         renderProducts();
 
-        // Dynamic Hero Section
-        if (products.length > 0) {
-            // Pick the Best Seller as Hero
-            const heroProduct = [...products].sort((a, b) => (b.sold || 0) - (a.sold || 0))[0];
+        // Dynamic Hero Section: Try to find iPhone 17 or fallback to newest
+        const heroProduct = products.find(p => p.title && p.title.includes('iPhone 17')) || products[0];
+        if (heroProduct) {
             updateHeroSection(heroProduct);
+        } else {
+            // No products found - Fallback
+            const heroImg = document.querySelector('.hero-image-container img');
+            if (heroImg) {
+                heroImg.src = 'https://placehold.co/600x400?text=Comming+Soon';
+                heroImg.alt = 'Coming Soon';
+            }
         }
 
     } catch (e) {
         console.error("Failed to load products", e);
+        if (typeof showToast === 'function') {
+            showToast('無法載入商品資料: ' + (e.message || 'Unknown Error'), 'error');
+        }
+
         if (productGrid) {
             productGrid.innerHTML = `
                 <div class="error" style="text-align: center; padding: 20px;">
@@ -107,21 +118,28 @@ function updateHeroSection(product) {
     const heroBtn = document.querySelector('.hero-btn');
 
     if (heroTitle) heroTitle.textContent = product.title;
-    if (heroDesc) heroDesc.textContent = "旗艦推薦 | 極致效能與絕佳設計"; // Generic placeholder
+    // Keep description static or derive from product if available
+    // if (heroDesc && product.description) heroDesc.textContent = product.description; 
     if (heroPrice) heroPrice.textContent = formatCurrency(product.price) + ' 起';
 
     if (heroImg) {
-        heroImg.src = product.image;
+        // Use the product image from Firebase
+        if (product.image) {
+            heroImg.src = product.image;
+        } else {
+            // Fallback if product has no image
+            heroImg.style.display = 'none';
+        }
         heroImg.alt = product.title;
-        // Fix for missing images breaking layout
-        heroImg.onerror = function () {
-            this.src = 'https://via.placeholder.com/500x500?text=Top+Product';
-        };
     }
 
     if (heroBtn) {
         // Update click to open THIS product
-        heroBtn.onclick = () => openProductModal(product.id, new Event('click'));
+        // Remove old listeners by cloning or just setting onclick
+        heroBtn.onclick = (e) => {
+            e.preventDefault();
+            openProductModal(product.id);
+        };
     }
 }
 
@@ -500,12 +518,16 @@ function removeFromCart(cartItemId, event) {
 }
 
 window.removeFromCart = removeFromCart;
+window.addToCart = addToCart;
 
 // Expose addToCart to global scope for onclick handler
 
 
 // Initial Load
-document.addEventListener('DOMContentLoaded', async () => {
+
+async function startApp() {
+    console.log("[startApp] Starting application...");
+
 
     // Init Real-time Presence
     initPresence((count) => {
@@ -513,7 +535,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (el) el.textContent = count;
     });
 
-    renderHotSearch(); // Helper function defined below
+    // renderHotSearch(); // Removed undefined function
     init();
     updateCartUI(); // FIX: Sync cart UI with localStorage on load
 
@@ -623,7 +645,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Search Functionality
     const searchInput = document.querySelector('.search-bar input');
-    const searchBtn = document.querySelector('.search-bar button');
+    const searchBtn = document.getElementById('searchBtn');
 
     function performSearch() {
         const query = searchInput.value.trim().toLowerCase();
@@ -734,16 +756,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
-});
 
-cartBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Prevent closing immediately
-    cartDropdown.classList.toggle('active');
-});
+    // End of startApp logic
+    console.log("[startApp] Initialized.");
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp);
+} else {
+    startApp();
+}
+
+
+if (cartBtn) {
+    cartBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent closing immediately
+        if (cartDropdown) cartDropdown.classList.toggle('active');
+    });
+}
 
 // Close cart when clicking outside
 document.addEventListener('click', (e) => {
-    if (!cartDropdown.contains(e.target) && !cartBtn.contains(e.target)) {
+    if (cartDropdown && cartBtn && !cartDropdown.contains(e.target) && !cartBtn.contains(e.target)) {
         cartDropdown.classList.remove('active');
     }
 });

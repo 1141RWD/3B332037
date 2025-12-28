@@ -1,4 +1,4 @@
-import { db } from './firebase_db.js?v=1';
+import { db } from './firebase_db.js';
 import {
     doc,
     setDoc,

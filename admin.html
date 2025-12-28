@@ -174,7 +174,7 @@
             <div class="section-header">
                 <h2><i class="fa-solid fa-users-gear" style="color: #3b82f6;"></i> 人員權限管理</h2>
             </div>
-
+            <!-- ... (Filter bar and Table) ... -->
             <div class="filter-bar">
                 <input type="text" id="userLinkSearch" class="search-input" placeholder="搜尋 UID 或 Email...">
             </div>
@@ -195,6 +195,20 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- 3. Developer Tools (DB Seeder) -->
+        <div class="admin-section" style="border: 1px dashed #cbd5e1; background: #f8fafc;">
+            <div class="section-header" style="border-bottom: none; margin-bottom: 0;">
+                <h2><i class="fa-solid fa-database" style="color: #64748b;"></i> 開發者工具</h2>
+            </div>
+            <div style="padding-top: 15px; display: flex; align-items: center; justify-content: space-between;">
+                <p style="color: #666; margin: 0;">若前台無商品顯示，請點擊此按鈕匯入範例資料。</p>
+                <button id="btn-seed-db"
+                    style="background: #64748b; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> 重置/匯入範例商品
+                </button>
             </div>
         </div>
     </div>
@@ -225,9 +239,8 @@
     </div>
 
     <script type="module" src="js/notification.js?v=f217a99"></script>
-    <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/admin.js"></script>
+    <script type="module" src="js/auth.js?v=f217a99"></script>
+    <script type="module" src="js/admin.js?v=f217a99"></script>
 </body>
 
 </html>
-

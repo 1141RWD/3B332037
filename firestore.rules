@@ -34,5 +34,10 @@ service cloud.firestore {
     match /seller_requests/{userId} {
       allow read, write: if isAuthenticated();
     }
+
+    // Presence: Real-time user tracking (Public)
+    match /presence/{sessionId} {
+      allow read, write: if true;
+    }
   }
 }

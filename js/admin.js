@@ -4,7 +4,11 @@ import {
     getAllUserRoles,
     setUserRole,
     getSellerRequests,
-    resolveSellerRequest
+    resolveSellerRequest,
+    db,
+    addDoc,
+    collection,
+    serverTimestamp
 } from './firebase_db.js';
 
 const auth = getAuth();
@@ -209,3 +213,89 @@ saveRoleBtn.addEventListener('click', async () => {
         saveRoleBtn.disabled = false;
     }
 });
+// ... (User Table Logic above)
+
+// 3. Database Seeder
+const btnSeedDb = document.getElementById('btn-seed-db');
+if (btnSeedDb) {
+    btnSeedDb.addEventListener('click', async () => {
+        if (!confirm('確定要匯入範例商品嗎？這將會新增多個測試商品。')) return;
+
+        try {
+            if (typeof showToast === 'function') showToast('正在匯入商品...', 'info');
+            btnSeedDb.disabled = true;
+            await seedProducts();
+            if (typeof showToast === 'function') showToast('匯入成功！請重整首頁查看。', 'success');
+            else alert('匯入成功！請重整首頁查看。');
+        } catch (e) {
+            console.error(e);
+            if (typeof showToast === 'function') showToast('匯入失敗: ' + e.message, 'error');
+            else alert('匯入失敗: ' + e.message);
+        } finally {
+            btnSeedDb.disabled = false;
+        }
+    });
+}
+
+
+
+async function seedProducts() {
+    const defaultProducts = [
+        {
+            title: "iPhone 17 Pro Max",
+            price: 44900,
+            image: "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1692845702708",
+            category: "mobile",
+            sold: 120,
+            options: {
+                colors: ["原色鈦金屬", "藍色鈦金屬", "白色鈦金屬", "黑色鈦金屬"],
+                specs: ["256GB", "512GB", "1TB"],
+                priceModifiers: { "512GB": 7000, "1TB": 14000 }
+            }
+        },
+        {
+            title: "PlayStation 5 Pro",
+            price: 24280,
+            image: "https://gmedia.playstation.com/is/image/SIEPDC/ps5-product-thumbnail-01-en-14sep20?$facebook$",
+            category: "gaming",
+            sold: 85,
+            options: {
+                colors: ["標準白", "午夜黑"],
+                specs: ["數位版", "光碟版"],
+                priceModifiers: { "光碟版": 3000 }
+            }
+        },
+        {
+            title: "Nintendo Switch OLED",
+            price: 10480,
+            image: "https://assets.nintendo.com/image/upload/f_auto/q_auto/dpr_1.5/c_scale,w_600/ncom/en_US/switch/site-design-update/hardware/switch/oled-model/gallery/white/01",
+            category: "gaming",
+            sold: 340,
+            options: {
+                colors: ["白色", "電光紅藍"],
+                specs: ["標準版"]
+            }
+        },
+        {
+            title: "AirPods Pro 2",
+            price: 7490,
+            image: "https://store.storeimages.cdn-apple.com/8756/as-images.apple.com/is/MTJV3?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1694014871985",
+            category: "mobile",
+            sold: 500,
+            options: {
+                colors: ["白色"],
+                specs: ["USB-C"]
+            }
+        }
+    ];
+
+    const batchPromises = defaultProducts.map(p => {
+        return addDoc(collection(db, 'products'), {
+            ...p,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+        });
+    });
+
+    await Promise.all(batchPromises);
+}

@@ -12,8 +12,23 @@ import {
     doc,
     updateDoc,
     writeBatch,
-    increment
+    increment,
+    deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Re-export specific Firebase SDK functions for use in other modules
+export {
+    collection,
+    addDoc,
+    serverTimestamp,
+    query,
+    where,
+    orderBy,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteDoc // Need to import this first if not present
+};
 
 const firebaseConfig = {
     apiKey: "AIzaSyBOa0xVWz3Say6JA_RNmyuGbxFVk8I3P7s",
