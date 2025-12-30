@@ -207,7 +207,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     badge.innerHTML = '<i class="fa-solid fa-clock"></i> 賣家審核中';
                     badge.style.cssText = 'display: inline-block; margin-top: 5px; color: #f59e0b; font-size: 0.9rem; background: #fffbeb; padding: 4px 8px; border-radius: 4px; border: 1px solid #fcd34d;';
                     container.appendChild(badge);
-                } else if (!request) {
+                } else {
+                    // Start: Logic for "No Request" OR "Rejected"
+
+                    // If rejected, show badge first
+                    if (request && request.status === 'rejected') {
+                        const badge = document.createElement('span');
+                        badge.id = 'seller-status-badge';
+                        badge.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> 審核未通過';
+                        badge.style.cssText = 'display: inline-block; margin-top: 5px; margin-right: 10px; color: #ef4444; font-size: 0.9rem; background: #fee2e2; padding: 4px 8px; border-radius: 4px; border: 1px solid #fca5a5;';
+                        container.appendChild(badge);
+                    }
+
                     // Check if actually a seller (double check)
                     // We'll trust the input value logic or just show the button and let backend reject if already seller.
                     // But to be nice, check if button already exists
@@ -215,7 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const btn = document.createElement('button');
                     btn.id = 'apply-seller-btn';
-                    btn.innerHTML = '<i class="fa-solid fa-store"></i> 申請成為賣家';
+                    const isReapply = (request && request.status === 'rejected');
+                    btn.innerHTML = isReapply ? '<i class="fa-solid fa-rotate-right"></i> 重新申請' : '<i class="fa-solid fa-store"></i> 申請成為賣家';
                     btn.type = 'button';
                     btn.style.cssText = 'display: inline-block; margin-top: 5px; background: white; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;';
 
@@ -223,13 +235,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.onmouseout = () => { btn.style.background = 'white'; btn.style.color = 'var(--primary-color)'; };
 
                     btn.onclick = async () => {
-                        const reason = prompt('請輸入申請原因 (例如：我想販售二手手機)：');
+                        const promptMsg = isReapply ? '請輸入重新申請原因：' : '請輸入申請原因 (例如：我想販售二手手機)：';
+                        const reason = prompt(promptMsg);
                         if (reason) {
                             try {
                                 await submitSellerRequest(user, reason);
                                 if (window.showToast) window.showToast('申請已送出！我們會盡快審核。', 'success');
                                 else alert('申請已送出！');
                                 btn.remove();
+                                // Remove rejected badge if exists
+                                const rejectedBadge = document.getElementById('seller-status-badge');
+                                if (rejectedBadge) rejectedBadge.remove();
+
                                 initSellerApplication(); // Re-render to show pending
                             } catch (e) {
                                 console.error(e);
