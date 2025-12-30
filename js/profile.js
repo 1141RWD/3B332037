@@ -177,6 +177,79 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         };
 
+        // --- Seller Application Logic ---
+        const initSellerApplication = async () => {
+            const roleInput = document.getElementById('role');
+            if (!roleInput) return;
+
+            // Only for customers
+            if (roleInput.value.includes('賣家') || roleInput.value.includes('admin')) return;
+
+            // Wait for auth.js to populate the value? 
+            // auth.js runs largely in parallel but might be slower or faster.
+            // Let's rely on checking the DB directly or just appending if "customer".
+            // Actually, querying 'user_roles' again is redundant but safe.
+            // Let's just use the `roleInput` value monitoring? No.
+
+            try {
+                const { getMySellerRequest, submitSellerRequest } = await import('./firebase_db.js?v=' + Date.now());
+                const request = await getMySellerRequest(user.uid);
+
+                const container = roleInput.parentElement;
+
+                // Remove existing status if any
+                const existingStatus = document.getElementById('seller-status-badge');
+                if (existingStatus) existingStatus.remove();
+
+                if (request && request.status === 'pending') {
+                    const badge = document.createElement('span');
+                    badge.id = 'seller-status-badge';
+                    badge.innerHTML = '<i class="fa-solid fa-clock"></i> 賣家審核中';
+                    badge.style.cssText = 'display: inline-block; margin-top: 5px; color: #f59e0b; font-size: 0.9rem; background: #fffbeb; padding: 4px 8px; border-radius: 4px; border: 1px solid #fcd34d;';
+                    container.appendChild(badge);
+                } else if (!request) {
+                    // Check if actually a seller (double check)
+                    // We'll trust the input value logic or just show the button and let backend reject if already seller.
+                    // But to be nice, check if button already exists
+                    if (document.getElementById('apply-seller-btn')) return;
+
+                    const btn = document.createElement('button');
+                    btn.id = 'apply-seller-btn';
+                    btn.innerHTML = '<i class="fa-solid fa-store"></i> 申請成為賣家';
+                    btn.type = 'button';
+                    btn.style.cssText = 'display: inline-block; margin-top: 5px; background: white; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;';
+
+                    btn.onmouseover = () => { btn.style.background = 'var(--primary-color)'; btn.style.color = 'white'; };
+                    btn.onmouseout = () => { btn.style.background = 'white'; btn.style.color = 'var(--primary-color)'; };
+
+                    btn.onclick = async () => {
+                        const reason = prompt('請輸入申請原因 (例如：我想販售二手手機)：');
+                        if (reason) {
+                            try {
+                                await submitSellerRequest(user, reason);
+                                if (window.showToast) window.showToast('申請已送出！我們會盡快審核。', 'success');
+                                else alert('申請已送出！');
+                                btn.remove();
+                                initSellerApplication(); // Re-render to show pending
+                            } catch (e) {
+                                console.error(e);
+                                alert('申請失敗: ' + e.message);
+                            }
+                        }
+                    };
+                    container.appendChild(btn);
+                }
+            } catch (e) {
+                console.error("Seller App Logic Error:", e);
+            }
+        };
+
+        // Run it with a slight delay to allow auth.js to fill role
+        setTimeout(initSellerApplication, 1000);
+
+
+
+
         // --- Event Listeners ---
         if (toggleHiddenBtn) {
             toggleHiddenBtn.addEventListener('click', () => {

@@ -403,3 +403,18 @@ export async function resolveSellerRequest(uid, isApproved) {
         throw e;
     }
 }
+export async function getMySellerRequest(uid) {
+    try {
+        const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+        const docRef = doc(db, "seller_requests", uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return docSnap.data();
+        }
+        return null;
+    } catch (e) {
+        console.error("Error getting my request:", e);
+        return null;
+    }
+}
