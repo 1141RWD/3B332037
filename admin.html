@@ -199,11 +199,14 @@
         </div>
 
         <!-- 3. Developer Tools (DB Seeder) -->
-        <div class="admin-section" style="border: 1px dashed #cbd5e1; background: #f8fafc;">
-            <div class="section-header" style="border-bottom: none; margin-bottom: 0;">
-                <h2><i class="fa-solid fa-database" style="color: #64748b;"></i> 開發者工具</h2>
-            </div>
-            <div style="padding-top: 15px; display: flex; align-items: center; justify-content: space-between;">
+        <details class="admin-section" style="border: 1px dashed #cbd5e1; background: #f8fafc;">
+            <summary class="section-header"
+                style="border-bottom: none; margin-bottom: 0; cursor: pointer; list-style: none;">
+                <h2><i class="fa-solid fa-database" style="color: #64748b;"></i> 開發者工具 (點擊展開)</h2>
+            </summary>
+
+            <div
+                style="padding-top: 15px; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: space-between;">
                 <p style="color: #666; margin: 0;">若前台無商品顯示，請點擊此按鈕匯入範例資料。</p>
                 <div style="display: flex; gap: 10px;">
                     <button id="btn-sync-emails"
@@ -216,7 +219,7 @@
                     </button>
                 </div>
             </div>
-        </div>
+        </details>
     </div>
 
     <!-- User Edit Modal -->
