@@ -257,14 +257,23 @@ export async function setUserRole(uid, role, email = '') {
 
     try {
         const { setDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-        // Store in 'user_roles' using UID as key
-        await setDoc(doc(db, "user_roles", uid), {
+
+        // Prepare data to update
+        const dataToUpdate = {
             uid: uid,
-            email: email, // Optional: store email for reference
             role: role,
             updatedAt: serverTimestamp()
-        });
-        console.log(`Success: Role '${role}' assigned to ${uid} (${email}).`);
+        };
+
+        // Only update email if it's a valid email (simple check) and not a system message
+        if (email && email.includes('@') && !email.includes('Approved-Request') && !email.includes('Admin-Panel')) {
+            dataToUpdate.email = email;
+        }
+
+        // Store in 'user_roles' using UID as key, merging with existing data
+        await setDoc(doc(db, "user_roles", uid), dataToUpdate, { merge: true });
+
+        console.log(`Success: Role '${role}' assigned to ${uid}.`);
         return true;
     } catch (e) {
         console.error("Error setting role:", e);
@@ -395,7 +404,19 @@ export async function resolveSellerRequest(uid, isApproved) {
 
         // 2. If Approved, Set Role
         if (isApproved) {
-            await setUserRole(uid, 'seller', 'Approved-Request');
+            // Fetch the email first from the request document to ensure we save it correctly
+            let userEmail = '';
+            try {
+                const { getDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+                const requestSnap = await getDoc(doc(db, "seller_requests", uid));
+                if (requestSnap.exists()) {
+                    userEmail = requestSnap.data().email || '';
+                }
+            } catch (err) {
+                console.warn("Could not fetch email from request doc:", err);
+            }
+
+            await setUserRole(uid, 'seller', userEmail);
         }
         return true;
     } catch (e) {

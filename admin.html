@@ -205,10 +205,16 @@
             </div>
             <div style="padding-top: 15px; display: flex; align-items: center; justify-content: space-between;">
                 <p style="color: #666; margin: 0;">若前台無商品顯示，請點擊此按鈕匯入範例資料。</p>
-                <button id="btn-seed-db"
-                    style="background: #64748b; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> 重置/匯入範例商品
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-sync-emails"
+                        style="background: #0ea5e9; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                        <i class="fa-solid fa-sync"></i> 同步 Email 資訊
+                    </button>
+                    <button id="btn-seed-db"
+                        style="background: #64748b; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 重置/匯入範例商品
+                    </button>
+                </div>
             </div>
         </div>
     </div>

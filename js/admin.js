@@ -198,7 +198,8 @@ saveRoleBtn.addEventListener('click', async () => {
         saveRoleBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 儲存中...';
         saveRoleBtn.disabled = true;
 
-        await setUserRole(uid, newRole, 'Admin-Panel-Update');
+        // Pass null for email so we don't overwrite it (firebase_db.js logic handles this now)
+        await setUserRole(uid, newRole, null);
 
         if (window.showToast) window.showToast('權限設定成功！', 'success');
         else alert('權限設定成功！');
@@ -233,6 +234,54 @@ if (btnSeedDb) {
             else alert('匯入失敗: ' + e.message);
         } finally {
             btnSeedDb.disabled = false;
+        }
+    });
+}
+
+// 4. Data Repair (Sync Emails from Requests)
+const btnSyncEmails = document.getElementById('btn-sync-emails');
+if (btnSyncEmails) {
+    btnSyncEmails.addEventListener('click', async () => {
+        if (!confirm('這將會嘗試從「賣家申請紀錄」中找回遺失的 Email 資訊並更新到列表。\n確定要執行嗎？')) return;
+
+        try {
+            if (window.showToast) window.showToast('正在同步 Email...', 'info');
+            btnSyncEmails.disabled = true;
+
+            const { doc, getDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+
+            let count = 0;
+            // Iterate over all loaded users
+            for (const user of allUsers) {
+                // Check if email is missing or looks like a status message
+                if (!user.email || user.email === 'Approved-Request' || user.email === 'Admin-Panel-Update') {
+
+                    // Try to find in seller_requests
+                    const reqSnap = await getDoc(doc(db, "seller_requests", user.id));
+                    if (reqSnap.exists()) {
+                        const correctEmail = reqSnap.data().email;
+                        if (correctEmail) {
+                            // Update user_roles
+                            await updateDoc(doc(db, "user_roles", user.id), {
+                                email: correctEmail
+                            });
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            if (window.showToast) window.showToast(`同步完成！修復了 ${count} 筆資料`, 'success');
+            else alert(`同步完成！修復了 ${count} 筆資料`);
+
+            loadUserList(); // Reload UI
+
+        } catch (e) {
+            console.error(e);
+            if (window.showToast) window.showToast('同步失敗: ' + e.message, 'error');
+            else alert('同步失敗: ' + e.message);
+        } finally {
+            btnSyncEmails.disabled = false;
         }
     });
 }
