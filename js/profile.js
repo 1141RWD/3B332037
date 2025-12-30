@@ -182,24 +182,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const roleInput = document.getElementById('role');
             if (!roleInput) return;
 
-            // Only for customers
-            if (roleInput.value.includes('賣家') || roleInput.value.includes('admin')) return;
+            const roleValue = roleInput.value;
 
-            // Wait for auth.js to populate the value? 
-            // auth.js runs largely in parallel but might be slower or faster.
-            // Let's rely on checking the DB directly or just appending if "customer".
-            // Actually, querying 'user_roles' again is redundant but safe.
-            // Let's just use the `roleInput` value monitoring? No.
+            // 1. Wait for Loading (Retry if not ready)
+            if (roleValue === '載入中...' || roleValue === '') {
+                setTimeout(initSellerApplication, 500);
+                return;
+            }
+
+            const container = roleInput.parentElement;
+            const existingBadge = document.getElementById('seller-status-badge');
+            const existingBtn = document.getElementById('apply-seller-btn');
+
+            // 2. If Admin or Seller, ensure no application UI is shown
+            // (This fixes the bug where Admins see "Rejected" if the check ran too early)
+            if (roleValue.includes('賣家') || roleValue.includes('Seller') || roleValue.includes('admin') || roleValue.includes('Admin')) {
+                if (existingBadge) existingBadge.remove();
+                if (existingBtn) existingBtn.remove();
+                return;
+            }
+
+            // ... Proceed only if Customer ...
 
             try {
                 const { getMySellerRequest, submitSellerRequest } = await import('./firebase_db.js?v=' + Date.now());
                 const request = await getMySellerRequest(user.uid);
 
-                const container = roleInput.parentElement;
-
-                // Remove existing status if any
-                const existingStatus = document.getElementById('seller-status-badge');
-                if (existingStatus) existingStatus.remove();
+                // Remove existing status if any (to avoid duplicates if re-running)
+                if (existingBadge) existingBadge.remove();
+                if (existingBtn) existingBtn.remove();
 
                 if (request && request.status === 'pending') {
                     const badge = document.createElement('span');
@@ -221,8 +232,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Check if actually a seller (double check)
                     // We'll trust the input value logic or just show the button and let backend reject if already seller.
-                    // But to be nice, check if button already exists
-                    if (document.getElementById('apply-seller-btn')) return;
 
                     const btn = document.createElement('button');
                     btn.id = 'apply-seller-btn';
@@ -261,8 +270,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Run it with a slight delay to allow auth.js to fill role
-        setTimeout(initSellerApplication, 1000);
+        // Initial call
+        initSellerApplication();
 
 
 
