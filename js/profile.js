@@ -6,6 +6,13 @@ let currentUserOrders = []; // Store ALL orders (Active + Hidden)
 let productMap = {}; // Id -> Product Mapping
 let isShowHidden = false; // State for filter
 
+// Helper to resolve paths
+const getPath = (page) => {
+    const isPagesDir = window.location.pathname.includes('/pages/');
+    if (page === 'index.html') return isPagesDir ? '../index.html' : 'index.html';
+    return isPagesDir ? page : `pages/${page}`;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // Modal Logic
     const modal = document.getElementById('orderModal');
@@ -31,15 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- 1. Customer Service Section ---
         if (authContentWrapper && !document.getElementById('service-box')) {
-            // ... (Keep existing injection code logic if implied, but assuming it helps to keep file shorter, I will not re-paste standard injection if it wasn't modified. 
-            // Wait, I am replacing the WHOLE file logic? No, `replace_file_content` targets blocks. 
-            // I need to be careful. The user instruction implies updating logic.
-            // I will implement a helper `renderOrders` and use it.)
-            // To ensure safety, I will target the logic INSIDE onAuthStateChanged.
+            // ... (Keep existing injection code logic if implied)
         }
-
-        // ... (Service Box Injection omitted for brevity in replacement if possible, but safest to replace relevant blocks) ...
-        // Actually, to correctly implement `renderOrders`, I should define it inside the scope or helper.
 
         // Helper to get Best Image
         const getDisplayImage = (item) => {
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="text-align: center; padding: 40px; color: #666;">
                         <i class="fa-solid ${isShowHidden ? 'fa-eye-slash' : 'fa-box-open'}" style="font-size: 3rem; margin-bottom: 20px; color: #ddd;"></i>
                         <p>${isShowHidden ? '沒有已隱藏的訂單' : '您目前還沒有任何訂單喔！'}</p>
-                        ${!isShowHidden ? '<a href="index.html" style="display: inline-block; margin-top: 10px; color: var(--primary-color); text-decoration: none; font-weight: bold;">去逛逛商品 &rarr;</a>' : ''}
+                        ${!isShowHidden ? `<a href="${getPath('index.html')}" style="display: inline-block; margin-top: 10px; color: var(--primary-color); text-decoration: none; font-weight: bold;">去逛逛商品 &rarr;</a>` : ''}
                     </div>
                 `;
                 return;

@@ -28,6 +28,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+// Helper to resolve paths based on current location
+const getPath = (page) => {
+    const isPagesDir = window.location.pathname.includes('/pages/');
+    // If target is index.html
+    if (page === 'index.html') {
+        return isPagesDir ? '../index.html' : 'index.html';
+    }
+    // For all other pages (which are in pages/ directory)
+    return isPagesDir ? page : `pages/${page}`;
+};
+
 // 1. Handle Register
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
@@ -68,7 +79,7 @@ if (registerForm) {
 
             showToast('註冊成功！驗證信已發送，請啟用帳號後登入。', 'success');
             setTimeout(() => {
-                window.location.href = 'login.html';
+                window.location.href = getPath('login.html');
             }, 2000);
         } catch (error) {
             let msg = '註冊失敗：' + error.message;
@@ -121,7 +132,8 @@ if (loginForm) {
 
             showToast('登入成功！', 'success');
             setTimeout(() => {
-                window.location.href = 'index.html';
+                // If on login page, go to index, or maybe profile? Default to index.
+                window.location.href = getPath('index.html');
             }, 500);
         } catch (error) {
             let msg = '登入失敗：' + error.message;
@@ -172,7 +184,7 @@ if (profileForm) {
 
         } else {
             // Not logged in, redirect
-            window.location.href = 'login.html';
+            window.location.href = getPath('login.html');
         }
     });
 
@@ -215,7 +227,7 @@ if (profileForm) {
                 const shouldRelogin = await showConfirm(msg);
                 if (shouldRelogin) {
                     await signOut(auth);
-                    window.location.href = 'login.html';
+                    window.location.href = getPath('login.html');
                 }
             } else {
                 showToast(msg, 'error');
@@ -243,11 +255,11 @@ onAuthStateChanged(auth, async (user) => {
             } catch (e) { console.error(e); }
 
             const adminLink = role === 'admin' ?
-                `<a href="admin.html" style="color: #ef4444; font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-screwdriver-wrench"></i> 管理中心</a> <span>|</span> ` : '';
+                `<a href="${getPath('admin.html')}" style="color: #ef4444; font-weight: bold; margin-right: 10px;"><i class="fa-solid fa-screwdriver-wrench"></i> 管理中心</a> <span>|</span> ` : '';
 
             userLinks.innerHTML = `
                 ${adminLink}
-                <a href="profile.html" title="修改會員資料">
+                <a href="${getPath('profile.html')}" title="修改會員資料">
                     <i class="fa-solid fa-user"></i> 歡迎回來! ${displayName} ${roleDisplay}
                 </a>
                 <span>|</span>
@@ -263,7 +275,7 @@ onAuthStateChanged(auth, async (user) => {
                         console.log('Logout clicked');
                         try {
                             await signOut(auth);
-                            window.location.href = 'index.html';
+                            window.location.href = getPath('index.html');
                         } catch (error) {
                             console.error("Logout failed:", error);
                             alert('登出失敗：' + error.message);
@@ -275,9 +287,9 @@ onAuthStateChanged(auth, async (user) => {
         } else {
             // Logged Out (Reset to default)
             userLinks.innerHTML = `
-                <a href="register.html">註冊</a>
+                <a href="${getPath('register.html')}">註冊</a>
                 <span>|</span>
-                <a href="login.html">登入</a>
+                <a href="${getPath('login.html')}">登入</a>
             `;
         }
     }

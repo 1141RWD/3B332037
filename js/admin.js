@@ -13,6 +13,13 @@ import {
 
 const auth = getAuth();
 
+// Helper to resolve paths
+const getPath = (page) => {
+    const isPagesDir = window.location.pathname.includes('/pages/');
+    if (page === 'index.html') return isPagesDir ? '../index.html' : 'index.html';
+    return isPagesDir ? page : `pages/${page}`;
+};
+
 // State
 let allUsers = [];
 let currentUserRole = null;
@@ -33,17 +40,17 @@ onAuthStateChanged(auth, async (user) => {
             currentUserRole = await getUserRole(user.uid, user.email);
             if (currentUserRole !== 'admin') {
                 alert('權限不足：您不是管理員！');
-                window.location.href = 'index.html';
+                window.location.href = getPath('index.html');
                 return;
             }
             // Is Admin
             initAdminPage();
         } catch (e) {
             console.error("Auth check failed", e);
-            window.location.href = 'index.html';
+            window.location.href = getPath('index.html');
         }
     } else {
-        window.location.href = 'login.html';
+        window.location.href = getPath('login.html');
     }
 });
 

@@ -7,6 +7,13 @@ window.setRole = setUserRole;
 
 const auth = getAuth();
 
+// Helper to resolve paths
+const getPath = (page) => {
+    const isPagesDir = window.location.pathname.includes('/pages/');
+    if (page === 'index.html') return isPagesDir ? '../index.html' : 'index.html';
+    return isPagesDir ? page : `pages/${page}`;
+};
+
 // 1. Auth Check
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -25,10 +32,10 @@ onAuthStateChanged(auth, async (user) => {
             initDashboard();
         } else {
             alert(`抱歉，您 (${userEmail}) 的身份是 'customer'，無權進入賣家中心。\n請聯繫管理員協助。`);
-            window.location.href = 'index.html';
+            window.location.href = getPath('index.html');
         }
     } else {
-        window.location.href = 'login.html';
+        window.location.href = getPath('login.html');
     }
 });
 
