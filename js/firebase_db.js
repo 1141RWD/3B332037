@@ -13,7 +13,9 @@ import {
     updateDoc,
     writeBatch,
     increment,
-    deleteDoc
+    deleteDoc,
+    setDoc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Re-export specific Firebase SDK functions for use in other modules

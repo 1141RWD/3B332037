@@ -677,8 +677,8 @@ async function startApp() {
                     sectionTitle.style.animation = 'fadeIn 0.5s ease-out';
                 }
 
-                // On mobile, might want to auto-collapse
                 if (window.innerWidth < 768) {
+                    // (Existing mobile logic...)
                     // Close sidebar completely if in mobile drawer mode
                     const sidebar = document.querySelector('.sidebar');
                     const overlay = document.getElementById('sidebar-overlay');
@@ -690,6 +690,22 @@ async function startApp() {
                         categoryList.classList.add('collapsed');
                         categoryToggle.classList.add('collapsed');
                     }
+                }
+
+                // Auto-scroll to products (New Feature)
+                const productsSection = document.querySelector('.products-section');
+                if (productsSection) {
+                    // Add a small delay to allow simple layout shifts if any, though render is sync usually
+                    setTimeout(() => {
+                        const headerOffset = 80;
+                        const elementPosition = productsSection.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: "smooth"
+                        });
+                    }, 100);
                 }
             });
         });

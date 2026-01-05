@@ -14,10 +14,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Orders: Users can read/write only their own orders
+    // Helper function
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 1. Presence (Real-time Online Count) - Keep this!
+    match /presence/{sessionId} {
+      allow read, write: if true;
+    }
+
+    // 2. Carts (Fixes the persistence issue) - ADD THIS
+    match /carts/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 3. Products: Read-only for public, Write for admins/sellers (Simplified)
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAuthenticated(); 
+    }
+
+    // 4. Orders: Users read/write their own
     match /orders/{orderId} {
       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+
+    // 5. Seller Requests: Users read/write their own
+    match /seller_requests/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 6. User Roles: Allow read/write for auth users (for Admin dashboard)
+    match /user_roles/{userId} {
+      allow read, write: if isAuthenticated();
     }
     
     // Default: Deny everything else
