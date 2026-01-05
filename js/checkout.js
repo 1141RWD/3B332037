@@ -2,6 +2,13 @@
 import { createOrder, hasUserUsedCoupon, validCoupons } from './firebase_db.js';
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// Helper to resolve paths
+const getPath = (page) => {
+    const isPagesDir = window.location.pathname.includes('/pages/');
+    if (page === 'index.html') return isPagesDir ? '../index.html' : 'index.html';
+    return isPagesDir ? page : `pages/${page}`;
+};
+
 const cityDistricts = {
     "Taipei": { name: "台北市", districts: ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"] },
     "NewTaipei": { name: "新北市", districts: ["板橋區", "三重區", "中和區", "永和區", "新莊區", "新店區", "樹林區", "鶯歌區", "三峽區", "淡水區", "汐止區", "瑞芳區", "土城區", "蘆洲區", "五股區", "泰山區", "林口區", "深坑區", "石碇區", "坪林區", "三芝區", "石門區", "八里區", "平溪區", "雙溪區", "貢寮區", "金山區", "萬里區", "烏來區"] },
@@ -306,7 +313,7 @@ function handlePlaceOrder(e) {
     const user = auth.currentUser;
     if (!user) {
         if (confirm('請先登入會員才能結帳喔！是否前往登入？')) {
-            window.location.href = 'login.html';
+            window.location.href = getPath('login.html');
         }
         return;
     }
@@ -370,7 +377,7 @@ function handlePlaceOrder(e) {
         .then((orderId) => {
             alert(`🎉 訂單已成功送出！\n\n訂單編號：${orderId}\n感謝您的購買，我們將盡快為您出貨。`);
             localStorage.removeItem('cart');
-            window.location.href = 'profile.html';
+            window.location.href = getPath('profile.html');
         })
         .catch((error) => {
             console.error("Order failed", error);
