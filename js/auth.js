@@ -239,6 +239,17 @@ if (profileForm) {
 // 4. Auth State Listener (Runs on every page)
 onAuthStateChanged(auth, async (user) => {
     const userLinks = document.querySelector('.user-links');
+    const loginIcon = document.querySelector('.login-icon'); // Mobile Icon
+
+    // Fix: Update Mobile Icon Link
+    if (loginIcon) {
+        if (user) {
+            loginIcon.href = getPath('profile.html');
+        } else {
+            loginIcon.href = getPath('login.html');
+        }
+    }
+
     if (userLinks) {
         if (user) {
             // Logged In
