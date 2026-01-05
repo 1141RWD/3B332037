@@ -140,6 +140,60 @@
 
 
 
+    <!-- Access Denied Modal -->
+    <div id="access-denied-modal" class="modal"
+        style="display: none; background-color: rgba(15,23,42,0.95); backdrop-filter: blur(8px);">
+        <div class="modal-content"
+            style="max-width: 450px; text-align: center; padding: 40px; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div style="font-size: 4rem; margin-bottom: 20px; animation: bounce 1s infinite;">⛔</div>
+            <h2 style="color: #ef4444; font-size: 1.8rem; margin-bottom: 10px;">存取被拒 (Access Denied)</h2>
+            <p style="color: #64748b; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
+                <span id="denied-email"
+                    style="display: block; font-weight: bold; color: #334155; margin-bottom: 10px;"></span>
+                抱歉，您的帳號權限不足。<br>僅限 <strong>賣家 (Seller)</strong> 或 <strong>管理員</strong> 進入此區域。
+            </p>
+            <a href="../index.html" class="btn-primary"
+                style="display: inline-block; width: 100%; text-decoration: none; padding: 15px; font-size: 1.1rem; border-radius: 50px;">
+                <i class="fa-solid fa-house"></i> 返回首頁
+            </a>
+            <div style="margin-top: 15px;">
+                <button onclick="window.location.href='../pages/login.html'" class="btn-secondary"
+                    style="width: 100%; padding: 12px; border-radius: 50px; background: transparent; border: 1px solid #e2e8f0;">
+                    切換帳號
+                </button>
+            </div>
+
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <p style="color: #94a3b8; font-size: 0.9rem;">
+                    想成為賣家嗎？<br>
+                    請前往 <a href="../pages/profile.html" style="color: #0EA5E9; text-decoration: underline;">個人檔案
+                        (Profile)</a> 頁面申請。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-10px);
+            }
+
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+    </style>
+
     <!-- Edit/Add Product Modal -->
     <div id="product-form-modal" class="modal">
         <div class="modal-content">

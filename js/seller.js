@@ -31,8 +31,19 @@ onAuthStateChanged(auth, async (user) => {
             }
             initDashboard();
         } else {
-            alert(`抱歉，您 (${userEmail}) 的身份是 'customer'，無權進入賣家中心。\n請聯繫管理員協助。`);
-            window.location.href = getPath('index.html');
+            // Show new fancy modal
+            const deniedModal = document.getElementById('access-denied-modal');
+            if (deniedModal) {
+                const emailSpan = document.getElementById('denied-email');
+                if (emailSpan) emailSpan.textContent = userEmail;
+                deniedModal.style.display = 'block';
+                // Remove dashboard content to prevent flash
+                const dashboard = document.querySelector('.seller-container');
+                if (dashboard) dashboard.style.display = 'none';
+            } else {
+                alert(`抱歉，您 (${userEmail}) 的身份是 'customer'，無權進入賣家中心。\n請聯繫管理員協助。`);
+                window.location.href = getPath('index.html');
+            }
         }
     } else {
         window.location.href = getPath('login.html');

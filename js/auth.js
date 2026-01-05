@@ -8,7 +8,8 @@ import {
     onAuthStateChanged,
     updateProfile,
     updatePassword,
-    sendEmailVerification
+    sendEmailVerification,
+    sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { setUserRole } from './firebase_db.js';
 
@@ -46,6 +47,17 @@ if (registerForm) {
         e.preventDefault();
 
         // reCAPTCHA Check
+        if (typeof grecaptcha === 'undefined') {
+            console.warn("reCAPTCHA validation skipped (lib not loaded).");
+            // Optional: block or allow? For dev, maybe allow. For prod, block.
+            // Let's block with a toast explanation if it's strictly required.
+            // Or better yet, just continue if it's missing (dev mode fallback) OR 
+            // alert that it's loading.
+            // Given user context (likely dev/test), let's alert.
+            showToast('驗證元件載入中或載入失敗，請稍後再試。', 'error');
+            return;
+        }
+
         const recaptchaResponse = grecaptcha.getResponse();
         if (recaptchaResponse.length === 0) {
             showToast('請勾選「我不是機器人」！', 'error');
@@ -61,6 +73,7 @@ if (registerForm) {
             showToast('兩次密碼輸入不一致！', 'error');
             return;
         }
+
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -100,6 +113,12 @@ if (loginForm) {
         e.preventDefault();
 
         // reCAPTCHA Check
+        if (typeof grecaptcha === 'undefined') {
+            console.warn("reCAPTCHA lib not loaded.");
+            showToast('驗證元件載入中或載入失敗，請檢查網路或重新整理。', 'error');
+            return;
+        }
+
         const recaptchaResponse = grecaptcha.getResponse();
         if (recaptchaResponse.length === 0) {
             alert('請勾選「我不是機器人」！');
@@ -143,6 +162,81 @@ if (loginForm) {
             showToast(msg, 'error');
         }
     });
+}
+
+// 2.1 Handle Forgot Password (Inject logic here)
+const forgotParams = {
+    modalId: 'forgotPasswordModal',
+    linkId: 'forgotPasswordLink',
+    btnId: 'resetPasswordBtn',
+    emailId: 'resetEmail'
+};
+
+// We need to wait for DOM to be fully loaded to attach these if they are injected dynamically or just ensure they exist.
+// Since this script is module, it runs deferred.
+const forgotLink = document.getElementById(forgotParams.linkId);
+if (forgotLink) {
+    const modal = document.getElementById(forgotParams.modalId);
+    const closeBtn = modal.querySelector('.close-modal');
+    const submitBtn = document.getElementById(forgotParams.btnId);
+
+    // Open Modal
+    forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'block';
+        // Auto-fill email if user typed it in login form
+        const loginEmail = document.getElementById('email');
+        if (loginEmail && loginEmail.value) {
+            document.getElementById(forgotParams.emailId).value = loginEmail.value;
+        }
+    });
+
+    // Close Modal
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (modal) {
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+    }
+
+    // Submit Reset
+    if (submitBtn) {
+        submitBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById(forgotParams.emailId).value;
+            if (!email) {
+                showToast('請輸入電子信箱！', 'error');
+                return;
+            }
+
+            // Visual Loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = '發送中...';
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                modal.style.display = 'none';
+                showToast(`✅ 重設密碼信件已發送至 ${email}，請查收！`, 'success');
+            } catch (error) {
+                console.error("Reset Password Error:", error);
+                let msg = '發送失敗：' + error.message;
+                if (error.code === 'auth/user-not-found') {
+                    msg = '找不到此 Email 的註冊帳號！';
+                } else if (error.code === 'auth/invalid-email') {
+                    msg = 'Email 格式錯誤！';
+                }
+                showToast(msg, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '發送重設信';
+            }
+        });
+    }
 }
 
 // 3. Handle Profile Update (profile.html)

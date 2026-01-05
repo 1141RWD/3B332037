@@ -243,26 +243,84 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.onmouseover = () => { btn.style.background = 'var(--primary-color)'; btn.style.color = 'white'; };
                     btn.onmouseout = () => { btn.style.background = 'white'; btn.style.color = 'var(--primary-color)'; };
 
-                    btn.onclick = async () => {
-                        const promptMsg = isReapply ? '請輸入重新申請原因：' : '請輸入申請原因 (例如：我想販售二手手機)：';
-                        const reason = prompt(promptMsg);
-                        if (reason) {
-                            try {
-                                await submitSellerRequest(user, reason);
-                                if (window.showToast) window.showToast('申請已送出！我們會盡快審核。', 'success');
-                                else alert('申請已送出！');
-                                btn.remove();
-                                // Remove rejected badge if exists
-                                const rejectedBadge = document.getElementById('seller-status-badge');
-                                if (rejectedBadge) rejectedBadge.remove();
+                    btn.onclick = () => {
+                        const modal = document.getElementById('seller-application-modal');
+                        const closeInfo = document.getElementById('close-seller-modal');
+                        const cancelBtn = document.getElementById('cancel-seller-apply');
+                        const submitBtn = document.getElementById('submit-seller-apply');
+                        const reasonInput = document.getElementById('seller-reason');
 
-                                initSellerApplication(); // Re-render to show pending
-                            } catch (e) {
-                                console.error(e);
-                                alert('申請失敗: ' + e.message);
-                            }
+                        if (!modal) {
+                            // Fallback
+                            const reason = prompt(isReapply ? '請輸入重新申請原因：' : '請輸入申請原因 (例如：我想販售二手手機)：');
+                            if (reason) submitApplication(reason);
+                            return;
                         }
+
+                        // Reset & Show
+                        reasonInput.value = '';
+                        reasonInput.placeholder = isReapply ? '請說明為何希望重新申請...' : '例如：我有許多二手 3C 產品想要上架販售...';
+                        modal.style.display = 'block';
+
+                        // Handlers
+                        const closeModal = () => { modal.style.display = 'none'; };
+
+                        // Remove old listeners to prevent duplicates (simple cloning trick or named functions preferred, but here we can just reset onclick for simplicity if elements are static, but since they are in static HTML, we should be careful. 
+                        // Actually, it's better to add listeners ONCE globally, but since this btn is dynamic, let's keep it contained or use a one-off handler.)
+                        // Better approach: Define handlers outside or clean up.
+
+                        // Let's use a one-off setup function or just carefully manage listeners.
+                        // Since modal is static in HTML, let's attach listeners dynamically but ensure we don't stack them.
+                        const newSubmitBtn = submitBtn.cloneNode(true);
+                        submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+
+                        const newCancelBtn = cancelBtn.cloneNode(true);
+                        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+                        const newCloseInfo = closeInfo.cloneNode(true);
+                        closeInfo.parentNode.replaceChild(newCloseInfo, closeInfo);
+
+                        // Attach new listeners
+                        newCloseInfo.addEventListener('click', closeModal);
+                        newCancelBtn.addEventListener('click', closeModal);
+
+                        // Close on outside click (handled by global listener already? No, that was for orderModal)
+                        window.onclick = (event) => {
+                            if (event.target == modal) closeModal();
+                            if (event.target == document.getElementById('orderModal')) document.getElementById('orderModal').style.display = 'none';
+                        };
+
+                        newSubmitBtn.addEventListener('click', () => {
+                            const reason = reasonInput.value.trim();
+                            if (!reason) {
+                                if (window.showToast) showToast('請填寫申請原因！', 'error');
+                                else alert('請填寫申請原因！');
+                                return;
+                            }
+                            submitApplication(reason);
+                            closeModal();
+                        });
                     };
+
+                    async function submitApplication(reason) {
+                        try {
+                            await submitSellerRequest(user, reason);
+                            if (window.showToast) window.showToast('申請已送出！我們會盡快審核。', 'success');
+                            else alert('申請已送出！');
+
+                            if (document.getElementById('apply-seller-btn')) document.getElementById('apply-seller-btn').remove();
+
+                            // Remove rejected badge if exists
+                            const rejectedBadge = document.getElementById('seller-status-badge');
+                            if (rejectedBadge) rejectedBadge.remove();
+
+                            initSellerApplication(); // Re-render to show pending
+                        } catch (e) {
+                            console.error(e);
+                            if (window.showToast) showToast('申請失敗: ' + e.message, 'error');
+                            else alert('申請失敗: ' + e.message);
+                        }
+                    }
                     container.appendChild(btn);
                 }
             } catch (e) {

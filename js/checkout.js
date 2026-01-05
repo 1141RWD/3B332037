@@ -1,6 +1,6 @@
 // Checkout Logic
-import { createOrder, hasUserUsedCoupon, validCoupons } from './firebase_db.js';
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { createOrder, hasUserUsedCoupon, validCoupons, getCartFromDB, saveCartToDB } from './firebase_db.js';
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // Helper to resolve paths
 const getPath = (page) => {
@@ -8,6 +8,31 @@ const getPath = (page) => {
     if (page === 'index.html') return isPagesDir ? '../index.html' : 'index.html';
     return isPagesDir ? page : `pages/${page}`;
 };
+
+// Auth Guard
+const auth = getAuth();
+onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+        // Allow a brief moment for UI to init (optional), or just redirect
+        if (typeof showToast === 'function') {
+            showToast('請先登入會員才能結帳！', 'error');
+        } else {
+            // Fallback if toast not ready
+            console.warn("User not logged in, redirecting...");
+        }
+        setTimeout(() => {
+            window.location.href = getPath('login.html');
+        }, 1500);
+    } else {
+        try {
+            const dbCart = await getCartFromDB(user.uid);
+            localStorage.setItem('bluecore_cart', JSON.stringify(dbCart));
+            loadCartForCheckout();
+        } catch (e) {
+            console.error("Failed to sync cart", e);
+        }
+    }
+});
 
 const cityDistricts = {
     "Taipei": { name: "台北市", districts: ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"] },
@@ -80,7 +105,7 @@ function initCouponSelector() {
         listContainer.innerHTML = '<p style="text-align:center; padding: 20px;">檢查優惠券中...</p>';
 
         // Calculate current subtotal for filtering
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const cart = JSON.parse(localStorage.getItem('bluecore_cart')) || [];
         const currentSubtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         if (!validCoupons || Object.keys(validCoupons).length === 0) {
@@ -178,7 +203,7 @@ function formatCurrency(amount) {
 }
 
 function loadCartForCheckout() {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cart = JSON.parse(localStorage.getItem('bluecore_cart')) || [];
     const container = document.getElementById('checkout-items');
     const subtotalEl = document.getElementById('subtotal');
     const shippingEl = document.getElementById('shipping');
@@ -319,7 +344,7 @@ function handlePlaceOrder(e) {
     }
 
     // Prepare Data
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const cart = JSON.parse(localStorage.getItem('bluecore_cart')) || [];
     if (cart.length === 0) return;
 
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -376,7 +401,8 @@ function handlePlaceOrder(e) {
     Promise.race([createOrder(user.uid, orderData), timeoutPromise])
         .then((orderId) => {
             alert(`🎉 訂單已成功送出！\n\n訂單編號：${orderId}\n感謝您的購買，我們將盡快為您出貨。`);
-            localStorage.removeItem('cart');
+            localStorage.removeItem('bluecore_cart');
+            saveCartToDB(user.uid, []); // Clear remote cart
             window.location.href = getPath('profile.html');
         })
         .catch((error) => {
@@ -395,7 +421,7 @@ function handlePlaceOrder(e) {
 let pendingDeleteId = null;
 
 window.updateCheckoutQuantity = function (itemId, change) {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let cart = JSON.parse(localStorage.getItem('bluecore_cart')) || [];
     const item = cart.find(i => i.id == itemId);
     if (!item) return;
 
@@ -404,7 +430,11 @@ window.updateCheckoutQuantity = function (itemId, change) {
         window.openDeleteModal(itemId);
     } else {
         item.quantity += change;
-        localStorage.setItem('cart', JSON.stringify(cart));
+        localStorage.setItem('bluecore_cart', JSON.stringify(cart));
+        const auth = getAuth();
+        if (auth.currentUser) {
+            saveCartToDB(auth.currentUser.uid, cart);
+        }
         loadCartForCheckout();
     }
 };
@@ -433,10 +463,16 @@ window.closeDeleteModal = function () {
 window.confirmDeleteItem = function () {
     if (!pendingDeleteId) return;
 
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let cart = JSON.parse(localStorage.getItem('bluecore_cart')) || [];
     cart = cart.filter(i => i.id != pendingDeleteId);
 
-    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('bluecore_cart', JSON.stringify(cart));
+
+    const auth = getAuth();
+    if (auth.currentUser) {
+        saveCartToDB(auth.currentUser.uid, cart);
+    }
+
     loadCartForCheckout(); // Re-render
 
     closeDeleteModal();

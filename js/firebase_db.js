@@ -439,3 +439,33 @@ export async function getMySellerRequest(uid) {
         return null;
     }
 }
+
+// Cart Management
+export async function saveCartToDB(userId, cartItems) {
+    if (!userId) return;
+    try {
+        const cartRef = doc(db, "carts", userId);
+        await setDoc(cartRef, {
+            items: cartItems,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+        console.log("Cart saved to DB");
+    } catch (e) {
+        console.error("Error saving cart to DB:", e);
+    }
+}
+
+export async function getCartFromDB(userId) {
+    if (!userId) return [];
+    try {
+        const cartRef = doc(db, "carts", userId);
+        const docSnap = await getDoc(cartRef);
+        if (docSnap.exists()) {
+            return docSnap.data().items || [];
+        }
+        return [];
+    } catch (e) {
+        console.error("Error fetching cart from DB:", e);
+        return [];
+    }
+}

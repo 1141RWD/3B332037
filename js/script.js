@@ -1,5 +1,6 @@
 // Product data loaded from Firestoe
-import { getProducts } from './firebase_db.js?v=11';
+import { getProducts, saveCartToDB, getCartFromDB } from './firebase_db.js?v=11';
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { initPresence } from './presence.js';
 
 // DOM Elements
@@ -12,10 +13,16 @@ const cartTotalElement = document.querySelector('.total-price span');
 
 // State
 let products = []; // Use local state
-let cart = JSON.parse(localStorage.getItem('cart')) || [];
+let cart = JSON.parse(localStorage.getItem('bluecore_cart')) || [];
 
 function saveCart() {
-    localStorage.setItem('cart', JSON.stringify(cart));
+    localStorage.setItem('bluecore_cart', JSON.stringify(cart));
+
+    // Sync to DB if logged in
+    const auth = getAuth();
+    if (auth.currentUser) {
+        saveCartToDB(auth.currentUser.uid, cart);
+    }
 }
 
 // Functions
@@ -296,6 +303,15 @@ function updateModalPrice() {
 
 function addToCartFromModal() {
     try {
+        const auth = getAuth();
+        if (!auth.currentUser) {
+            if (typeof showToast === 'function') showToast('請先登入會員才能購物！', 'error');
+            else alert('請先登入會員才能購物！');
+            const target = window.location.pathname.includes('/pages/') ? 'login.html' : 'pages/login.html';
+            setTimeout(() => window.location.href = target, 1500);
+            return;
+        }
+
         if (!currentModalProduct) {
             console.warn("No current modal product");
             return;
@@ -388,6 +404,17 @@ window.addToCartFromModal = addToCartFromModal;
 
 // Cart Logic
 function addToCart(productId, event) {
+    const auth = getAuth();
+    if (!auth.currentUser) {
+        if (typeof showToast === 'function') showToast('請先登入會員才能購物！', 'error');
+        else alert('請先登入會員才能購物！');
+
+        // Redirect logic
+        const target = window.location.pathname.includes('/pages/') ? 'login.html' : 'pages/login.html';
+        setTimeout(() => window.location.href = target, 1500);
+        return;
+    }
+
     const product = products.find(p => p.id == productId);
     if (!product) return;
 
@@ -535,9 +562,34 @@ async function startApp() {
         if (el) el.textContent = count;
     });
 
-    // renderHotSearch(); // Removed undefined function
+    // Handle Authentication & Cart Sync
+    const auth = getAuth();
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log(`[Auth] User ${user.uid} logged in. Syncing cart...`);
+
+            // 1. Get DB Cart
+            const dbCart = await getCartFromDB(user.uid);
+
+            // 2. Strict Mode: Just load DB cart.
+            // Since guests cannot add items, we don't need to merge.
+            // Trust DB as source of truth.
+            cart = dbCart;
+
+            localStorage.setItem('bluecore_cart', JSON.stringify(cart));
+            updateCartUI();
+
+        } else {
+            // User logged out.
+            console.log("[Auth] User logged out. Clearing local cart result.");
+            cart = [];
+            localStorage.setItem('bluecore_cart', JSON.stringify(cart));
+            updateCartUI();
+        }
+    });
+
     init();
-    updateCartUI(); // FIX: Sync cart UI with localStorage on load
+    updateCartUI();
 
     // Category Toggle
     const categoryToggle = document.getElementById('categories-toggle');

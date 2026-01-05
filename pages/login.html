@@ -36,15 +36,37 @@
                     <label for="password">密碼</label>
                     <input type="password" id="password" required placeholder="請輸入密碼">
                 </div>
-                <!-- reCAPTCHA Widget -->
-                <div class="form-group" style="display: flex; justify-content: center;">
+                <div class="form-group"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <div class="g-recaptcha" data-sitekey="6Le5kzQsAAAAAElvrpAJ1h0I7IUXzQrs9YfHp1Wv"></div>
                 </div>
+
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <a href="#" id="forgotPasswordLink" style="color: #64748b; font-size: 0.9rem;">忘記密碼？</a>
+                </div>
+
                 <button type="submit" class="auth-btn">登入</button>
             </form>
             <div class="auth-footer">
                 還沒有帳號？ <a href="register.html">立即註冊</a>
             </div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; padding: 30px;">
+            <span class="close-modal">&times;</span>
+            <h2 style="margin-bottom: 15px; color: #333;">重設密碼</h2>
+            <p style="margin-bottom: 20px; color: #666;">請輸入您的註冊信箱，我們將寄送重設連結給您。</p>
+
+            <div class="form-group">
+                <label for="resetEmail">電子信箱</label>
+                <input type="email" id="resetEmail" placeholder="name@example.com"
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px;">
+            </div>
+
+            <button id="resetPasswordBtn" class="auth-btn" style="width: 100%; margin-top: 10px;">發送重設信</button>
         </div>
     </div>
 
