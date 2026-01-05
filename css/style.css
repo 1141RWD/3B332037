@@ -1343,6 +1343,9 @@ footer::before {
         margin: 0;
         border-radius: 0;
         max-width: none;
+        overflow-y: auto; /* Fix: Allow vertical scrolling on mobile */
+        display: flex; /* Ensure flex behavior */
+        flex-direction: column;
     }
 }
 
